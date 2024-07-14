@@ -1,0 +1,75 @@
+<html>
+<head>
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>VISION</title>
+<link rel="icon" type="image/png" href="https://microintel.github.io/microintel/fav.png">
+<link href='https://fonts.googleapis.com/css?family=JetBrains Mono' rel='stylesheet'>
+<link rel="stylesheet" href="vision.css">
+</head>
+<body onload="xxx()">
+<br>
+<center>
+<h1>VISION</h1>
+<h6 style="margin:0px;letter-spacing:2px;color:white;">sip calculator</h6>
+</center>
+<br><br><br>
+<form>
+<div class="inp">
+  <div class="ra">
+    <p>Enter monthly investment Amount</p>
+   <input oninput="inv(this.value)" id="miv" max="1000000" min="100" type="range" required>
+  </div>
+  <div class="num">
+   <input oninput="ver(this.value,this.max,this.min,'invest')" id="mivn" value="100" max="1000000" min="100" type="number" required>
+   </div>
+</div>
+<br><br>
+<div class="inp">
+  <div class="ra">
+    <p>Enter Expected Anual Return ( % )</p>
+   <input max="99" min="5" oninput="exar(this.value)" id="ar" max="1000000" min="100" type="range">
+  </div>
+  <div class="num">
+   <input id="arn" oninput="ver(this.value,this.max,this.min,'retur')" value="5" max="100" min="5" type="number">
+   </div>
+</div>
+<br><br>
+<div class="inp">
+  <div class="ra">
+    <p>Enter investment period ( years )</p>
+   <input oninput="iy(this.value)" min="1" max="70" id="ip" type="range">
+  </div>
+  <div class="num">
+   <input id="ipn" oninput="ver(this.value,this.max,this.min,'yrss')" min="1" max="70" value="1" type="number">
+   </div>
+</div>
+</form>
+
+<br>
+
+<center>
+<button onclick="xxx()">calcate</button>
+</center>
+<br>
+<center>
+<div id="pi" class="pie">
+        <div class="duck">
+        </div>
+    </div>
+</center>
+
+<br><div class="foot">
+<div class="fo">
+ <div class="sp"> <span style="background-color:var(--cc);"></span></div><font>invested amount</font><font style="color:black;"></font><font>:</font><font id="ina"></font>
+</div>
+<div class="fo">
+ <div class="sp"> <span style="background-color:var(--xx);"></span></div><font>Earned amount</font><font style="color:black;">_</font><font>:</font><font id="retu"></font>
+</div>
+<div class="fo">
+ <div class="sp"> <span style="border:1px solid var(--cc);"></span></div><font>total amount earn</font><font>:</font><font id="tea"></font>
+</div>
+</div>
+
+<script src="vision.js"></script>
+</body>
+</html>
