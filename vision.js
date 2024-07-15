@@ -1,6 +1,6 @@
 let widofs=parseInt(window.innerWidth);
 
-if(widofs>900){
+if(widofs>790){
 
 location.href="https://microintel.github.io/vision/largeview";
 }
