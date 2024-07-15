@@ -1,0 +1,136 @@
+:root{
+   
+   --cc:green;
+   --xx:white;
+   
+   }
+   body{
+   margin:7px;
+   padding:0px;
+   background-color:black;
+   color:white;
+   display:flex;
+   flex-direction:column;
+   justify-content:center;
+   
+   }
+   .inp{
+   
+   display:flex;
+   gap:10px;
+   justify-content:space-around;
+   }
+   
+   input[type="number"]{
+   
+   width:81px;
+   height:34px;
+   border-radius:20px;
+   border:1px solid white;
+   text-align:center;
+   }
+   
+   input[type="range"]{
+   margin-top:6px;
+   padding:0px;
+   width:219px;
+   height:40px;
+   accent-color:var(--cc);
+   height:0.3rem;
+   }
+   
+   .num{
+   margin:0px;
+   display:flex;
+   flex-direction:column;
+   justify-content:center;
+   align-items:center;
+   }
+   
+   button{
+   width:100px;
+   
+   }
+   p{
+   padding:0px;
+   margin:0px;
+   }
+   button{
+   background-color:var(--cc);
+   color:white;
+   border-radius:15px;
+   border:1px solid var(--cc);
+   height:40px;
+   width:200px;
+   }
+   h2,h6,h1{
+   margin:0px;
+   font-family:'JetBrains Mono';
+   }
+   
+   
+   .fo{
+   
+   
+   display:flex;
+   gap:10px;
+   }
+   
+   span{
+   width:30px;
+   height:10px;
+   border-radius:14px;
+   
+   }
+   .sp{
+   
+   display:flex;
+   justify-content:center;
+   align-items:center;
+   }
+   
+   .pie {
+   position: relative;
+   width: 200px;
+   height: 200px;
+   border-radius: 50%;
+   /* background: conic-gradient(red 0%, red 50%,green 50%, green 100%);*/
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   color: white;
+   text-align: center;
+   }
+   
+   .pie::before {
+   content:'';
+   position: absolute;
+   width: 130px;
+   height: 130px;
+   border-radius: 50%;
+   background:black;
+   }
+   
+   .duck{
+   position: relative;
+   z-index: 1;
+   }
+   .foot{
+   display:flex;
+   flex-direction:column;
+   justify-content:flex-start;
+   align-items:flex-start;
+   
+   }
+   .mai{
+   display:flex;
+   flex-direction:row;
+   justify-content:space-around;
+   gap:35px;
+   }
+   .sub2,.sub3,.sub1{
+   dispaly:flex;
+   flex-direction:column;
+   justify-content:center;
+   align-items:center;
+   }
