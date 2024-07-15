@@ -133,7 +133,7 @@ let ran=Math.floor(Math.random()*5);
 let cd={
 "0":["green","white"],
 "1":["#5E17EB","#5CE1E6"],
-"2":["#FF914D","#5E17EB"],
+"2":["#5E17EB","#FF914D"],
 "3":["#FFDE59","#00BF63"],
 "4":["#435E55FF","#D64161FF"]
 };
