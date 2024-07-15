@@ -129,18 +129,13 @@ document.getElementById('tea').innerHTML=fm(xxxc.toFixed(0));
 }
 
 let root = document.documentElement;
-let ran=Math.floor(Math.random()*8);
+let ran=Math.floor(Math.random()*5);
 let cd={
 "0":["green","white"],
 "1":["#5E17EB","#5CE1E6"],
 "2":["#FF914D","#5E17EB"],
 "3":["#FFDE59","#00BF63"],
-"4":["#435E55FF","#D64161FF"],
-"5":["#2C5F2D","#97BC62FF"],
-"6":["#2C5F2DFF","#FFE77AFF"],
-"7":["#B1624EFF","#5CC8D7FF"],
-"8":["#FB6542","#FFBB00"],
-"9":["#1EAE98","#D8B5FF"]
+"4":["#435E55FF","#D64161FF"]
 };
 
 let cccv=cd[ran];
