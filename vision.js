@@ -1,4 +1,9 @@
+let widofs=parseInt(window.innerWidth);
 
+if(widofs>900){
+
+location.href="https://microintel.github.io/vision/largeview";
+}
 function ind(number) {
             let numStr = number.toString();
            // alert(numStr);
