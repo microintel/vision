@@ -118,7 +118,7 @@ let totalin = parseFloat(redforti);
 let totalearn = (100 - totalin).toFixed(2);
 //alert(totalearn+"$$$$");
 
-let cccc="conic-gradient(var(--cc) 0%, var(--cc) "+redforti+"%,var(--xx) "+redforti+"%, var(--xx) 100%)";
+let cccc="conic-gradient(var(--xx) 0%, var(--xx) "+redforti+"%,var(--cc) "+redforti+"%, var(--cc) 100%)";
 //alert(cccc);
 
 document.getElementById('pi').style.background=cccc;
