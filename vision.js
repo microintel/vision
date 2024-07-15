@@ -1,3 +1,8 @@
+let widofs=window.innerWidth;
+if(widofs<900){
+
+location.href="https://microintel.github.io/vision";
+}
 function ind(number) {
             let numStr = number.toString();
            // alert(numStr);
