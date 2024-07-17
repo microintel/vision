@@ -118,7 +118,7 @@ let totalin = parseFloat(redforti);
 let totalearn = (100 - totalin).toFixed(2);
 //alert(totalearn+"$$$$");
 
-let cccc="conic-gradient(var(--cc) 0%, var(--cc) "+redforti+"%,var(--xx) "+redforti+"%, var(--xx) 100%)";
+let cccc="conic-gradient(var(--xx) 0%, var(--xx) "+redforti+"%,var(--cc) "+redforti+"%, var(--cc) 100%)";
 //alert(cccc);
 
 document.getElementById('pi').style.background=cccc;
@@ -132,10 +132,10 @@ let root = document.documentElement;
 let ran= Math.floor(Math.random()*4);
 let cd={
 //    invest    earn     bubg       buc     bgg
-"0":["#C1FF72","#00BF63","#FFDE59","black","#FFDE59"],
-"1":["#5CE1E6","#5E17EB","#5E17EB","white","#5E17EB"],
-"2":["#FFFFFF","#C1FF72","#C1FF72","black","#C1FF72"],
-"3":["#FF914D","#5E17EB","#FF914D","#FFFFFF","#5E17EB"],
+"0":["#00BF63","#C1FF72","#FFDE59","black","#FFDE59"],
+"1":["#5E17EB","#5CE1E6","#5E17EB","white","#5E17EB"],
+"2":["#C1FF72","#FFFFFF","#C1FF72","black","#C1FF72"],
+"3":["#5E17EB","#FF914D","#FF914D","#FFFFFF","#5E17EB"],
 };
 
 let cccv=cd[ran];
@@ -145,4 +145,5 @@ root.style.setProperty('--cc', cd[ran][0]);
 root.style.setProperty('--xx', cd[ran][1]);
 root.style.setProperty("--bgg",cd[ran][4]);
 
+  
   
