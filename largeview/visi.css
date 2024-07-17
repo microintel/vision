@@ -1,9 +1,12 @@
 :root{
-   
-   --cc:green;
-   --xx:white;
-   
-   }
+
+--inv:green;
+--ear:white;
+--br:yello;
+--bc:red;
+--bgg:pink;
+
+}
    body{
    margin:7px;
    padding:0px;
@@ -35,7 +38,7 @@
    padding:0px;
    width:219px;
    height:40px;
-   accent-color:var(--cc);
+   accent-color:var(--br);
    height:0.3rem;
    }
    
@@ -56,10 +59,10 @@
    margin:0px;
    }
    button{
-   background-color:var(--cc);
-   color:white;
+   background-color:var(--bgg);
+   color:var(--bc);
    border-radius:15px;
-   border:1px solid var(--cc);
+   border:1px solid var(--bgg);
    height:40px;
    width:200px;
    }
@@ -133,4 +136,4 @@
    flex-direction:column;
    justify-content:center;
    align-items:center;
-   }
+      }
