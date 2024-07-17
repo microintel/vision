@@ -1,4 +1,3 @@
-
 function ind(number) {
             let numStr = number.toString();
            // alert(numStr);
@@ -93,6 +92,7 @@ yrsN.value=va;
 xxx();
 }
 function xxx(){
+
 let mr=parseFloat(annN.value/12/100);
 let i=parseFloat(monN.value);
 let y=parseFloat(yrsN.value);
@@ -112,7 +112,7 @@ let totalin = parseFloat(redforti);
 let totalearn = (100 - totalin).toFixed(2);
 //alert(totalearn+"$$$$");
 
-let cccc="conic-gradient(var(--cc) 0%, var(--cc) "+redforti+"%,var(--xx) "+redforti+"%, var(--xx) 100%)";
+let cccc="conic-gradient(var(--xx) 0%, var(--xx) "+redforti+"%,var(--cc) "+redforti+"%, var(--cc) 100%)";
 //alert(cccc);
 
 document.getElementById('pi').style.background=cccc;
@@ -123,24 +123,20 @@ document.getElementById('tea').innerHTML=fm(xxxc.toFixed(0));
 }
 
 let root = document.documentElement;
-let ran=Math.floor(Math.random()*8);
+let ran= Math.floor(Math.random()*4);
 let cd={
-"0":["green","white"],
-"1":["#5E17EB","#5CE1E6"],
-"2":["#FF914D","#5E17EB"],
-"3":["#FFDE59","#00BF63"],
-"4":["#435E55FF","#D64161FF"],
-"5":["#2C5F2D","#97BC62FF"],
-"6":["#2C5F2DFF","#FFE77AFF"],
-"7":["#B1624EFF","#5CC8D7FF"],
-"8":["#FB6542","#FFBB00"],
-"9":["#1EAE98","#D8B5FF"]
+//    invest    earn     bubg       buc     bgg
+"0":["#00BF63","#C1FF72","#FFDE59","black","#FFDE59"],
+"1":["#5E17EB","#5CE1E6","#5E17EB","white","#5E17EB"],
+"2":["#C1FF72","#FFFFFF","#C1FF72","black","#C1FF72"],
+"3":["#5E17EB","#FF914D","#FF914D","#FFFFFF","#5E17EB"],
 };
 
 let cccv=cd[ran];
-root.style.setProperty('--cc', cccv[0]);
-root.style.setProperty('--xx', cccv[1]);
+root.style.setProperty("--br",cd[ran][2]);
+root.style.setProperty("--bc",cd[ran][3]);
+root.style.setProperty('--cc', cd[ran][0]);
+root.style.setProperty('--xx', cd[ran][1]);
+root.style.setProperty("--bgg",cd[ran][4]);
 
   
-
-
