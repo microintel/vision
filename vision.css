@@ -1,126 +1,260 @@
 :root{
-
---inv:green;
---ear:white;
---br:yello;
---bc:red;
---bgg:pink;
-
+    --inv: green;
+    --ear: white;
+    --br: yellow;
+    --bc: red;
+    --bgg: pink;
 }
+
+
 body{
-margin:7px;
-padding:0px;
-background-color:black;
-color:white;
-display:flex;
-flex-direction:column;
-justify-content:center;
+        margin: 7px;
+        padding: 0px;
+        background-color: black;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        transition:1.5s;
+    }
 
-}
-.inp{
+    .inp{
+        display: flex;
+        gap: 10px;
+        justify-content: space-around;
+    }
 
-display:flex;
-gap:10px;
-justify-content:space-around;
-}
+    input[type="number"]{
+        width: 81px;
+        height: 34px;
+        border-radius: 20px;
+        border: 1px solid white;
+        text-align: center;
+    }
+    input[type="number"]::placeholder{
+    color:black;
+    }
 
-input[type="number"]{
+    input[type="range"]{
+        margin-top: 6px;
+        padding: 0px;
+        width: 249px;
+        height: 0.3rem;
+        accent-color: var(--br);
+    }
 
-width:81px;
-height:34px;
-border-radius:20px;
-border:1px solid white;
-text-align:center;
-}
+    .num{
+        margin: 0px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
 
-input[type="range"]{
-margin-top:6px;
-padding:0px;
-width:249px;
-height:40px;
-accent-color:var(--br);
-height:0.3rem;
-}
+    button{
+        width: 100px;
+        background-color: var(--bgg);
+        color: var(--bc);
+        border-radius: 15px;
+        border: 1px solid var(--bgg);
+        height: 40px;
+        width: 200px;
+    }
 
-.num{
-margin:0px;
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-}
+    p{
+        padding: 0px;
+        margin: 0px;
+    }
 
-button{
-width:100px;
-}
-p{
-padding:0px;
-margin:0px;
-}
-button{
-background-color:var(--bgg);
-color:var(--bc);
-border-radius:15px;
-border:1px solid var(--bgg);
-height:40px;
-width:200px;
-}
-h2,h6,h1{
-margin:0px;
-font-family:'JetBrains Mono';
-}
+    h2, h6, h1{
+        margin: 0px;
+        font-family: 'JetBrains Mono';
+    }
 
+    .fo{
+        display: flex;
+        gap: 10px;
+    }
 
-.fo{
+    span{
+        width: 30px;
+        height: 10px;
+        border-radius: 14px;
+    }
 
+    .sp{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 
-display:flex;
-gap:10px;
-}
+    .pie {
+        position: relative;
+        width: 170px;
+        height: 170px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        text-align: center;
+        transition:2s;
+    }
 
-span{
-width:30px;
-height:10px;
-border-radius:14px;
+    .pie::before {
+        content: '';
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: black;
+    }
 
-}
-.sp{
+    .duck{
+        position: relative;
+        z-index: 1;
+    }
 
-display:flex;
-justify-content:center;
-align-items:center;
-}
+    .foot{
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
 
-.pie {
-            position: relative;
-            width: 170px;
-            height: 170px;
-            border-radius: 50%;
-           /* background: conic-gradient(red 0%, red 50%,green 50%, green 100%);*/
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            text-align: center;
+    table{
+        position: relative;
+        display: flex;
+        overflow-x: auto;
+    }
+
+    table, td, th{
+        color: white;
+        border: 0px solid grey;
+    }
+
+    td{
+        background-color: #000000;
+        border: none;
+        min-width: 160px;
+    }
+
+    th:nth-child(1){
+        border: 1px solid var(--xx);
+        color: white;
+    }
+
+    th:nth-child(2){
+        background-color: var(--xx);
+        color: black;
+    }
+
+    th:nth-child(3){
+        background-color: var(--cc);
+        color: black;
+    }
+
+    th:nth-child(4){
+        background-color: black;
+        color: white;
+        border: 1px solid var(--cc);
+    }
+
+    #fv12, #fv22, #fv32, #fv42, #fv52, #fv62, #fv72{
+        color: var(--xx);
+    }
+
+    #fv13, #fv23, #fv33, #fv43, #fv53, #fv63, #fv73{
+        color: white;
+    }
+
+    #fv14, #fv24, #fv34, #fv44, #fv54, #fv64, #fv74{
+        color: red;
+    }
+
+    tr:hover td{
+        border-radius: 10px;
+        border: 1px solid var(--br);
+    }
+
+input[type="number"].error {
+            background-color: red;
         }
+        .err{
+        background-color:red;
+        width:320px;
+        padding:8px;
+        display:none;
+        border-radius:6px;
+        border:1px solid red;
+       opacity: 0;
+       transform: translateY(40px);
+       animation: fly 0.7s forwards;
+       transition:1.5s;
+       }
+       
+       @keyframes fly {
+       to {
+       opacity: 1;
+       transition:1s;
+       transform: translateY(0);
+       }
+       }
+       
+       #calcull{
+       display: none;
+       }
+       #mrrrr,#tabbb,#fc{
+       
+       display:none;
+       }
+       
+@media (min-width: 769px) {
 
-        .pie::before {
-        content:'';
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background:black;
-        }
-        
-        .duck{
-            position: relative;
-            z-index: 1;
-        }
-        .foot{
-        display:flex;
-        flex-direction:column;
-        justify-content:flex-start;
-        align-items:flex-start;
-        
-        }
+
+    
+
+    .tab{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    table{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    }
+
+    .mlr{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .ml{
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    #calcu{
+        display: none;
+    }
+    #calcull{
+    display:block;
+    }
+    
+
+    #fc{
+        text-align: center;
+    }
+    .err{
+    
+    width:360px;
+    }
+    
+    
+}
+
