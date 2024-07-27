@@ -1,11 +1,124 @@
-/*
-let widofs=parseInt(window.innerWidth);
+//    val  max
+function inpuV(in1,in2,in3){
+let cci=[in1,in2,in3];
 
-if(widofs>790){
+for(let x in cci){
+let dic= document.getElementById(cci[x]);
+if(dic.value==""){
 
-location.href="https://microintel.github.io/vision/largeview";
+    document.getElementById('errr').innerHTML = "Please Fill All Input Fields..";
+    document.getElementById('errr').style.display = 'block';
+} else {
+    document.getElementById('errr').style.display = 'none';
 }
-*/
+
+
+}
+
+
+}
+
+
+function ins(id,val){
+
+if (val > 100000 || val < 1) {
+    document.getElementById(id).style.backgroundColor = 'red';
+    document.getElementById('errr').innerHTML = "Investment must be between 1 and 1,00,000";
+    document.getElementById('errr').style.display = 'block';
+} else {
+    document.getElementById(id).style.backgroundColor = 'white';
+    document.getElementById('errr').style.display = 'none';
+}
+
+
+xxx();
+}
+
+function ret(id,val){
+
+if (val > 69 || val < 1) {
+    document.getElementById(id).style.backgroundColor = 'red';
+    document.getElementById('errr').innerHTML = "return rate must be between 1% & 69%..";
+    document.getElementById('errr').style.display = 'block';
+} else {
+    document.getElementById(id).style.backgroundColor = 'white';
+    document.getElementById('errr').style.display = 'none';
+}
+
+
+xxx();
+}
+
+function ver(val,iid){
+
+if (val > 50 || val < 1) {
+    document.getElementById(iid).style.backgroundColor = 'red';
+    document.getElementById('errr').innerHTML = "Enter Duration Period Upto 50yrs ";
+    document.getElementById('errr').style.display = 'block';
+} else {
+    document.getElementById(iid).style.backgroundColor = 'white';
+    document.getElementById('errr').style.display = 'none';
+}
+
+
+xxx();
+}
+
+
+let dmy= new Date();
+let monM=dmy.getMonth()+1;
+let dayM=dmy.getDate();
+let yearM=dmy.getFullYear();
+//alert(monM+"_"+dayM+"_"+yearM)
+
+function ftn(n) {
+    let sexx = Math.floor(n / 1000000000000000000000);
+    n %= 1000000000000000000000;
+    let quint = Math.floor(n / 1000000000000000000);
+    n %= 1000000000000000000;
+    let quia = Math.floor(n / 1000000000000000);
+    n %= 1000000000000000;
+    let trill = Math.floor(n / 1000000000000);
+    n %= 1000000000000;
+    let billion = Math.floor(n / 1000000000);
+    n %= 1000000000;
+    let crore = Math.floor(n / 10000000);
+    n %= 10000000;
+    let lakh = Math.floor(n / 100000);
+    n %= 100000;
+    let thousand = Math.floor(n / 1000);
+    n %= 1000;
+    let rupees = n;
+
+    let parts = [];
+    if (sexx) {
+        parts.push(sexx + "<font style='color:red'><sup>S</sup></font>");}
+    if (quint) {
+        parts.push(quint + "<font style='color:red'><sup>Qi</sup></font>");}
+    if (quia) {
+        parts.push(quia + "<font style='color:red'><sup>Q</sup></font>");}
+    if (trill) {
+        parts.push(trill + "<font style='color:red'><sup>T</sup></font>");}
+    if (billion) {
+        parts.push(billion + "<font style='color:red'><sup>B</sup></font>");
+    }
+    if (crore) {
+        parts.push(crore + "<font style='color:red'><sup>Cr</sup></font>");   }
+    if (lakh) {
+        parts.push(lakh + "<font style='color:red'><sup>Lk</sup></font>");
+           }
+    if (thousand) {
+        parts.push(thousand + "<font style='color:red'><sup>k</sup></font>"); }
+    if (rupees) {
+        parts.push(rupees + "<font style='color:red'><sup>rs</sup></font>");
+        }
+
+    return parts.join(' ');
+}
+
+
+
+
 function ind(number) {
             let numStr = number.toString();
            // alert(numStr);
@@ -48,45 +161,6 @@ let yrsN=  document.getElementById('ipn');
 
 
 
-function ver(val,ma,mi,wh){
-
-/*if(wh=='invest'){
-if(val>ma){
-alert("Enter Investment within 10Lak.");
-monN.value=0;
-}
-}
-*/
-
-
-if(wh=='retur'){
-if(val>100){
-alert("Please Enter within 100% return.");
-annN.value=99;
-}
-if(val<mi){
-alert("Please Enter Above 5% return.");
-annN.value=5;
-}
-}
-
-if(wh=='yrss'){
-if(val>71){
-alert("Please Enter years upto 70 only.");
-yrsN.value=70;
-
-}
-if(val<mi){
-alert("what a funny, U R Entering 0yrs.");
-yrsN.value=1;
-
-}
-}
-
-xxx();
-}
-
-
 function exar(va){
 annN.value=va;
 xxx();
@@ -100,6 +174,10 @@ yrsN.value=va;
 xxx();
 }
 function xxx(){
+document.getElementById('mrrrr').style.display="block";
+document.getElementById('tabbb').style.display="block";
+document.getElementById('fc').style.display="block";
+
 
 let mr=parseFloat(annN.value/12/100);
 let i=parseFloat(monN.value);
@@ -125,9 +203,11 @@ let cccc="conic-gradient(var(--xx) 0%, var(--xx) "+redforti+"%,var(--cc) "+redfo
 
 document.getElementById('pi').style.background=cccc;
 
-document.getElementById('ina').innerHTML=fm(toti.toFixed(0));
-document.getElementById('retu').innerHTML=fm(e.toFixed(0));
-document.getElementById('tea').innerHTML=fm(xxxc.toFixed(0));
+document.getElementById('ina').innerHTML= ftn(parseInt(fm(toti.toFixed(0)).replace(/,/g,""),10));
+document.getElementById('retu').innerHTML=ftn(parseInt(fm(e.toFixed(0)).replace(/,/g,""),10));
+document.getElementById('tea').innerHTML=ftn(parseInt(fm(xxxc.toFixed(0)).replace(/,/g,""),10));
+
+fut(y);
 }
 
 let root = document.documentElement;
@@ -148,4 +228,71 @@ root.style.setProperty('--xx', cd[ran][1]);
 root.style.setProperty("--bgg",cd[ran][4]);
 
   
-  
+function futx(yr){
+
+let mr=parseFloat(annN.value/12/100);
+let i=parseFloat(monN.value);
+let y=parseFloat(yr);
+let xxxc=i * ((((1 +mr)**(y*12))-1) * (1 +mr))/mr;
+let toti=i*y*12;
+let e=xxxc-toti;
+//alert("total value "+xxxc.toFixed(2)+"<br><br><br>"+"tital investment "+toti.toFixed(2)+"<br><br><br>"+"earned "+e.toFixed(2));
+//document.write(i);
+
+let fcinv = parseFloat(toti.toFixed(2)); // total inv
+let fce = parseFloat(e.toFixed(2)); // earn
+
+let redforti = ((fcinv) / (fcinv + fce) * 100).toFixed(2);
+//alert(redforti+"___");
+
+let totalin = parseFloat(redforti);
+let totalearn = (100 - totalin).toFixed(2);
+//alert(totalearn+"$$$$");
+let dataa=[fm(toti.toFixed(0)),fm(e.toFixed(0)),fm(xxxc.toFixed(0))];
+return dataa;
+
+}
+
+//alert(parseInt(futx(50)[2].replace(),10));
+
+function fut(yr){
+
+document.getElementById('fv11').textContent= (dayM)+"/"+(monM)+"/"+(yearM)+" [ 1y ]";
+document.getElementById('fv12').innerHTML=ftn(parseInt(futx(2)[0].replace(/,/g,""),10));
+document.getElementById('fv13').innerHTML= ftn(parseInt(futx(2)[1].replace(/,/g,""),10));
+document.getElementById('fv14').innerHTML= ftn(parseInt(futx(2)[2].replace(/,/g,""),10));
+
+document.getElementById('fv21').innerHTML=  (dayM)+"/"+(monM)+"/"+(yearM+5)+" [ 5y ]";;
+document.getElementById('fv22').innerHTML= ftn(parseInt(futx(5)[0].replace(/,/g,""),10));
+document.getElementById('fv23').innerHTML=ftn(parseInt(futx(5)[1].replace(/,/g,""),10));
+document.getElementById('fv24').innerHTML= ftn(parseInt(futx(5)[2].replace(/,/g,""),10));
+
+document.getElementById('fv31').innerHTML=  (dayM)+"/"+(monM)+"/"+(yearM+10)+" [ 10y ]";;
+document.getElementById('fv32').innerHTML= ftn(parseInt(futx(10)[0].replace(/,/g,""),10));
+document.getElementById('fv33').innerHTML= ftn(parseInt(futx(10)[1].replace(/,/g,""),10));
+document.getElementById('fv34').innerHTML= ftn(parseInt(futx(10)[2].replace(/,/g,""),10));
+
+document.getElementById('fv41').innerHTML= (dayM)+"/"+(monM)+"/"+(yearM+15)+" [ 15y ]";;
+document.getElementById('fv42').innerHTML= ftn(parseInt(futx(15)[0].replace(/,/g,""),10));
+document.getElementById('fv43').innerHTML= ftn(parseInt(futx(15)[1].replace(/,/g,""),10));
+document.getElementById('fv44').innerHTML=ftn(parseInt(futx(15)[2].replace(/,/g,""),10));
+
+document.getElementById('fv51').innerHTML=  (dayM)+"/"+(monM)+"/"+(yearM+20)+" [ 20y ]";;
+document.getElementById('fv52').innerHTML=  ftn(parseInt(futx(20)[0].replace(/,/g,""),10));
+document.getElementById('fv53').innerHTML= ftn(parseInt(futx(20)[1].replace(/,/g,""),10));
+document.getElementById('fv54').innerHTML=  ftn(parseInt(futx(20)[2].replace(/,/g,""),10));
+
+document.getElementById('fv61').innerHTML=  (dayM)+"/"+(monM)+"/"+(yearM+25)+" [ 25y ]";;
+document.getElementById('fv62').innerHTML= ftn(parseInt(futx(25)[0].replace(/,/g,""),10));
+document.getElementById('fv63').innerHTML= ftn(parseInt(futx(25)[1].replace(/,/g,""),10));
+document.getElementById('fv64').innerHTML= ftn(parseInt(futx(25)[2].replace(/,/g,""),10));
+
+document.getElementById('fv71').innerHTML= (dayM)+"/"+(monM)+"/"+(yearM+30)+" [ 30y ]";;
+document.getElementById('fv72').innerHTML= ftn(parseInt(futx(30)[0].replace(/,/g,""),10));
+document.getElementById('fv73').innerHTML= ftn(parseInt(futx(30)[1].replace(/,/g,""),10));
+document.getElementById('fv74').innerHTML= ftn(parseInt(futx(30)[2].replace(/,/g,""),10));
+
+
+}
+
+
