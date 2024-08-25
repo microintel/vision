@@ -1,0 +1,138 @@
+
+<html>
+<head>
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<link rel="stylesheet" href="vision.css">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>VISION</title>
+<link rel="icon" type="image/png" href="https://microintel.github.io/microintel/fav.png">
+<link href='https://fonts.googleapis.com/css?family=JetBrains Mono' rel='stylesheet'>
+</head>
+<body>
+<div class="head">
+<center>
+<br>
+<h1>VISION</h1>
+<h6 style="margin:0px;letter-spacing:2px;color:black;">sip calculator</h6>
+</center>
+<br><br>
+</div>
+<div class="mlege">
+<div class="legend">
+<img src="https://raw.githubusercontent.com/microintel/endgram/main/photo/warren.png">
+
+<div class="subleg">
+<font style="font-size:24px;">Warren Buffet</font>
+<font style="font-size:12px">If you don't find a way to make money while you sleep, you will work until you die</h4>
+</div>
+</div>
+</div>
+<br>
+
+<div id="mllr" class="mlr">
+<center><p id="errr" class="err"></p></center>
+<br><br>
+<div class="ml">
+
+<div class="inp">
+  <div class="ra">
+
+
+    <p>monthly investment Amount</p>
+   <input oninput="inv(this.value),ins('mivn',this.value)" id="miv" max="100000" min="1" type="range" required>
+  </div>
+  <div class="num">
+   <input oninput="ins('mivn',this.value)" id="mivn"  placeholder="Enter" max="1000000" min="1" type="number" required>
+   </div>
+ 
+</div>
+<br><br>
+<div class="inp">
+  <div class="ra">
+  
+    <p>Expected Anual Return %</p>
+   <input max="69" min="1" oninput="exar(this.value),ret('arn',this.value)" id="ar"  type="range">
+  </div>
+  <div class="num">
+   <input id="arn"  oninput="ret('arn',this.value)" placeholder="Enter" max="70" min="1" type="number">
+   </div>
+</div>
+<br><br>
+<div class="inp">
+  <div class="ra">
+    <p>investment period yrs</p>
+   <input onchange="ver(this.id,this.value)" oninput="iy(this.value),ver(this.value,'ipn')" min="1" max="50" id="ip" type="range">
+  </div>
+  <div class="num">
+   <input id="ipn" onchange="ver(this.id,this.value,'ipn')" oninput="ver(this.value,'ipn')" min="1" max="50" placeholder="Enter" type="number">
+   </div>
+</div>
+
+</div>
+<br>
+
+<center>
+<button id="calcu" onclick="inpuV('mivn','arn','ipn')">calculate</button>
+</center>
+<br>
+
+<div id="mrrrr" class="mrr">
+<center>
+<div id="pi" class="pie">
+        <div class="duck">
+        </div>
+    </div>
+</center>
+
+<div
+id="myChart" style="width:100%;margin:0px;padding:0px; max-width:600px; height:300px;">
+</div>
+
+
+
+<br><div class="foot">
+<div class="fo">
+ <div class="sp"> <span style="background-color:var(--xx);"></span></div><font>invested amount</font><font style="color:black;"></font><font>:</font><font id="ina"></font>
+</div>
+<div class="fo">
+ <div class="sp"> <span style="background-color:var(--cc);"></span></div><font>Earned amount</font><font style="color:black;">_</font><font>:</font><font id="retu"></font>
+</div>
+<div class="fo">
+ <div class="sp"> <span style="border:1px solid var(--cc);"></span></div><font>total amount earn</font><font>:</font><font id="tea"></font>
+</div>
+</div>
+
+
+</div>
+</div><br>
+<center>
+<button id="calcull" onclick="inpuV('mivn','arn','ipn')">calculate</button>
+</center></br>
+<h3 id="fc" onclick="fut()">Future Calculations...</h3>
+
+<div id="tabbb" class="tab">
+<center>
+<table>
+      <tr> <th>Duration</th>  <th>Invest</th> <th>Earn</th><th>Future</th>  </tr>
+      
+      <tr> <td id="fv11"></td>  <td id="fv12"></td> <td id="fv13"></td> <td id="fv14"></td>  </tr>
+      
+      <tr> <td id="fv21"></td>  <td id="fv22"></td>  <td id="fv23"></td> <td id="fv24"></td> </tr>
+      
+      <tr> <td id="fv31"></td> <td id="fv32"></td><td id="fv33"></td> <td id="fv34"></td>  </tr>
+      
+      <tr> <td id="fv41"></td> <td id="fv42"></td> <td id="fv43"></td> <td id="fv44"></td>  </tr>
+      
+      <tr> <td id="fv51"></td><td id="fv52"></td> <td id="fv53"></td> <td id="fv54"></td> </tr>
+      
+      <tr class="tttt"> <td id="fv61"></td><td id="fv62"></td><td id="fv63"></td><td id="fv64"></td></tr>
+      
+      <tr class="tttt"> <td id="fv71"></td> <td id="fv72"></td> <td id="fv73"></td><td id="fv74"></td> </tr>
+
+</table>
+</center>
+</div>
+</body>
+<script src="vision.js"></script>
+</body>
+</html>
