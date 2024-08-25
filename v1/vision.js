@@ -328,7 +328,7 @@ const data = google.visualization.arrayToDataTable([
 var options = {
 legend:'none',
          //is3D: true,
-          pieHole: 0.5,
+          pieHole: 0.56,
           backgroundColor: '#000000',
           legend:'none',
           pieSliceTextStyle:{ color:'transparent'},
