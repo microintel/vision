@@ -1,3 +1,6 @@
+
+window.location.href="v1";
+
 //    val  max
 function inpuV(in1,in2,in3){
 let cci=[in1,in2,in3];
