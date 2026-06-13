@@ -1,119 +1,983 @@
-<html>
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
 <head>
-     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <title>VISION</title>
-<link rel="icon" type="image/png" href="https://microintel.github.io/microintel/fav.png">
-<link href='https://fonts.googleapis.com/css?family=JetBrains Mono' rel='stylesheet'>
-<link rel="stylesheet" href="vision.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VISION — SIP Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<!-- three.js + vanta dots -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.dots.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ────────────────────────────────────────────
+   THEME TOKENS
+──────────────────────────────────────────── */
+:root {
+  --violet:    #7C3AED;
+  --violet-l:  #A78BFA;
+  --gold:      #F59E0B;
+  --gold-l:    #FCD34D;
+  --green:     #10B981;
+  --red:       #EF4444;
+  --radius:    16px;
+  --radius-sm: 10px;
+  --transition: 0.35s cubic-bezier(.4,0,.2,1);
+}
+
+/* DARK */
+[data-theme="dark"] {
+  --bg:      #08091280;
+  --vanta-bg:#080912;
+  --surface: #12141F;
+  --card:    rgba(18,20,31,0.82);
+  --border:  #252840;
+  --text:    #F1F5F9;
+  --muted:   #94A3B8;
+  --dim:     #475569;
+  --input-bg:#0e101a;
+  --logo-from:#ffffff;
+  --toggle-icon: '☀️';
+  --vanta-color: 0x7C3AED;
+  --vanta-color2: 0xF59E0B;
+  --vanta-bg-hex: 0x080912;
+}
+
+/* LIGHT */
+[data-theme="light"] {
+  --bg:      rgba(240,242,255,0.7);
+  --vanta-bg:#e8eaf8;
+  --surface: #f0f2ff;
+  --card:    rgba(255,255,255,0.88);
+  --border:  #dde0f5;
+  --text:    #1E1B4B;
+  --muted:   #6B7280;
+  --dim:     #9CA3AF;
+  --input-bg:#f5f6ff;
+  --logo-from:#1E1B4B;
+  --toggle-icon: '🌙';
+  --vanta-color: 0x7C3AED;
+  --vanta-color2: 0xF59E0B;
+  --vanta-bg-hex: 0xe8eaf8;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+/* ── VANTA CANVAS ── */
+#vanta-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  transition: background var(--transition);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: transparent;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: color var(--transition);
+}
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  z-index: 20;
+  padding: 20px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 6px;
+  background: linear-gradient(135deg, var(--logo-from) 30%, var(--violet-l));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: background var(--transition);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.badge {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── THEME TOGGLE ── */
+.theme-toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: transform 0.3s, border-color 0.3s, background var(--transition);
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 0;
+}
+.theme-toggle:hover { transform: rotate(20deg) scale(1.1); border-color: var(--violet); }
+
+/* ── HERO QUOTE ── */
+.hero-quote {
+  position: relative;
+  z-index: 10;
+  margin: 22px 20px 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: background var(--transition), border-color var(--transition);
+}
+.hero-quote::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--violet), var(--gold));
+  border-radius: 3px 0 0 3px;
+}
+.quote-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--violet);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.quote-author {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600; font-size: 12px;
+  color: var(--gold); margin-bottom: 3px;
+}
+.quote-body {
+  font-size: 11px; color: var(--muted);
+  line-height: 1.6; font-style: italic;
+}
+
+/* ── MAIN LAYOUT ── */
+main {
+  position: relative;
+  z-index: 10;
+  padding: 16px 16px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (min-width: 900px) {
+  main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    padding: 20px 32px 60px;
+    align-items: start;
+  }
+  header { padding: 24px 40px 0; }
+  .hero-quote { margin: 22px 32px 0; }
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 18px;
+  margin-bottom: 14px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: background var(--transition), border-color var(--transition);
+}
+.card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 18px;
+}
+
+/* ── SLIDERS ── */
+.input-row { margin-bottom: 26px; }
+.input-row:last-child { margin-bottom: 0; }
+
+.input-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.input-label span:first-child {
+  font-size: 13px; font-weight: 500; color: var(--text);
+}
+.input-label span:last-child {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 17px; font-weight: 700;
+  color: var(--violet-l);
+  min-width: 80px; text-align: right;
+}
+
+.slider-wrap { display: flex; align-items: center; gap: 10px; }
+
+input[type="range"] {
+  -webkit-appearance: none;
+  flex: 1; height: 4px;
+  background: var(--border);
+  border-radius: 4px;
+  outline: none; cursor: pointer;
+  transition: background var(--transition);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--violet);
+  border: 2px solid #fff;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+input[type="range"]::-webkit-slider-thumb:active {
+  box-shadow: 0 0 0 8px rgba(124,58,237,0.2);
+}
+
+input[type="number"] {
+  width: 74px; height: 36px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 600;
+  text-align: center; outline: none;
+  transition: border-color 0.2s, background var(--transition), color var(--transition);
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type="number"]:focus { border-color: var(--violet); }
+input[type="number"].invalid { border-color: var(--red); background: rgba(239,68,68,0.08); }
+
+/* ── ERROR ── */
+.error-banner {
+  display: none;
+  background: rgba(239,68,68,0.12);
+  border: 1px solid var(--red);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 12px; color: #FCA5A5;
+  margin-bottom: 14px;
+  animation: slideDown 0.3s ease;
+}
+@keyframes slideDown {
+  from { opacity:0; transform:translateY(-6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── WEALTH METER ARC ── */
+.wealth-meter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 20px 0 12px;
+}
+.arc-container {
+  position: relative;
+  width: 200px; height: 110px;
+}
+.arc-container svg { width: 200px; height: 110px; overflow: visible; }
+.arc-bg      { stroke: var(--border); fill: none; stroke-width: 12; stroke-linecap: round; transition: stroke var(--transition); }
+.arc-invest  { fill: none; stroke-width: 12; stroke-linecap: round; stroke: var(--violet);
+               transition: stroke-dasharray 0.8s cubic-bezier(.4,0,.2,1), stroke-dashoffset 0.8s cubic-bezier(.4,0,.2,1); }
+.arc-earn    { fill: none; stroke-width: 12; stroke-linecap: round; stroke: var(--gold);
+               transition: stroke-dasharray 0.8s cubic-bezier(.4,0,.2,1), stroke-dashoffset 0.8s cubic-bezier(.4,0,.2,1); }
+
+.arc-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -10%);
+  text-align: center;
+}
+.arc-total {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 19px; font-weight: 700;
+  color: var(--text); line-height: 1;
+}
+.arc-label {
+  font-size: 10px; color: var(--dim);
+  margin-top: 2px; letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ── RESULT PILLS ── */
+.result-pills {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px; margin-top: 18px;
+}
+.pill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 8px; text-align: center;
+  transition: border-color 0.3s, background var(--transition);
+}
+.pill:hover { border-color: var(--violet); }
+.pill-label {
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 5px;
+}
+.pill-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 700; line-height: 1.2;
+}
+.pill-value .unit { font-size: 10px; font-weight: 500; color: var(--dim); }
+.pill-invest .pill-value { color: var(--violet-l); }
+.pill-earn   .pill-value { color: var(--gold); }
+.pill-total  .pill-value { color: var(--green); }
+
+/* ── DONUT ── */
+#myChart { width:100%; height:220px; margin:0; }
+.chart-legend {
+  display: flex; gap: 18px;
+  justify-content: center;
+  margin-top: 6px;
+}
+.legend-item {
+  display: flex; align-items: center;
+  gap: 7px; font-size: 12px; color: var(--muted);
+}
+.legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+/* ── FUTURE TABLE ── */
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+.section-title { font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; color:var(--text); }
+.section-sub   { font-size:11px; color:var(--dim); }
+.table-wrap    { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+table { width:100%; min-width:400px; border-collapse:collapse; }
+
+thead th {
+  font-size:10px; font-weight:600;
+  letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--dim); padding:8px 10px;
+  text-align:left; border-bottom:1px solid var(--border);
+}
+tbody tr { transition: background 0.15s; }
+tbody tr:hover { background: rgba(124,58,237,0.06); }
+tbody td { padding:10px; font-size:12px; border-bottom:1px solid var(--border); color:var(--text); }
+tbody tr:last-child td { border-bottom:none; }
+
+.td-year    { font-size:11px; color:var(--dim); white-space:nowrap; }
+.td-invest  { color:var(--violet-l); font-family:'Space Grotesk',sans-serif; font-weight:600; }
+.td-earn    { color:var(--gold);     font-family:'Space Grotesk',sans-serif; font-weight:600; }
+.td-total   { color:var(--green);    font-family:'Space Grotesk',sans-serif; font-weight:700; }
+
+.grow-bar-wrap { display:flex; align-items:center; gap:6px; }
+.grow-bar {
+  height:4px; background:var(--border);
+  border-radius:4px; flex:1; overflow:hidden;
+}
+.grow-bar-fill {
+  height:100%; border-radius:4px;
+  background:linear-gradient(90deg,var(--violet),var(--gold));
+  transition: width 0.6s ease;
+}
+
+/* ── LINE CHART ── */
+.line-chart-wrap {
+  margin-top: 18px;
+  position: relative;
+  height: 220px;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align:center; padding:36px 20px; color:var(--dim); }
+.empty-state svg { opacity:0.3; margin-bottom:10px; }
+.empty-state p { font-size:13px; }
+
+/* ── MOBILE RESULTS ── */
+.results-panel { display:none; }
+.results-panel.active { display:block; }
+
+/* ── FOOTER ── */
+footer {
+  position:relative; z-index:10;
+  text-align:center; padding:0 20px 28px;
+  font-size:11px; color:var(--dim); letter-spacing:1px;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* ── DESKTOP ── */
+@media (min-width:900px) {
+  .left-col  { grid-column:1; }
+  .right-col { grid-column:2; }
+  .results-panel { display:block !important; }
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade-up { animation: fadeUp 0.5s ease both; }
+
+/* ── THEME TRANSITION ── */
+*, *::before, *::after {
+  transition: background-color var(--transition),
+              border-color var(--transition),
+              color var(--transition);
+}
+input[type="range"],
+input[type="range"]::-webkit-slider-thumb { transition: none; }
+</style>
 </head>
 <body>
-<br>
-<center>
-<h1>VISION</h1>
-<h6 style="margin:0px;letter-spacing:2px;color:white;">sip calculator</h6>
-</center>
-<br><br>
 
-<center><p id="errr" class="err"></p></center>
-<br>
-<div class="mlr">
+<!-- VANTA BACKGROUND -->
+<div id="vanta-bg"></div>
 
-<div class="ml">
-
-<div class="inp">
-  <div class="ra">
-
-
-    <p>monthly investment Amount</p>
-   <input oninput="inv(this.value),ins('mivn',this.value)" id="miv" max="100000" min="1" type="range" required>
+<!-- HEADER -->
+<header>
+  <div class="logo">VISION</div>
+  <div class="header-right">
+    <div class="badge">SIP Calculator</div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle dark/light theme">
+      <span id="themeIcon">☀️</span>
+    </button>
   </div>
-  <div class="num">
-   <input oninput="ins('mivn',this.value)" id="mivn"  placeholder="Enter" max="1000000" min="1" type="number" required>
-   </div>
- 
-</div>
-<br><br>
-<div class="inp">
-  <div class="ra">
-  
-    <p>Expected Anual Return %</p>
-   <input max="69" min="1" oninput="exar(this.value),ret('arn',this.value)" id="ar"  type="range">
+</header>
+
+<!-- QUOTE -->
+<div class="hero-quote">
+  <img class="quote-avatar"
+       src="https://raw.githubusercontent.com/microintel/endgram/main/photo/warren.png"
+       alt="Warren Buffett" onerror="this.style.display='none'">
+  <div>
+    <div class="quote-author">Warren Buffett</div>
+    <div class="quote-body">"If you don't find a way to make money while you sleep, you will work until you die."</div>
   </div>
-  <div class="num">
-   <input id="arn"  oninput="ret('arn',this.value)" placeholder="Enter" max="70" min="1" type="number">
-   </div>
-</div>
-<br><br>
-<div class="inp">
-  <div class="ra">
-    <p>investment period yrs</p>
-   <input onchange="ver(this.id,this.value)" oninput="iy(this.value),ver(this.value,'ipn')" min="1" max="50" id="ip" type="range">
-  </div>
-  <div class="num">
-   <input id="ipn" onchange="ver(this.id,this.value,'ipn')" oninput="ver(this.value,'ipn')" min="1" max="50" placeholder="Enter" type="number">
-   </div>
 </div>
 
-</div>
-<br>
+<!-- MAIN -->
+<main>
 
-<center>
-<button id="calcu" onclick="inpuV('mivn','arn','ipn')">calculate</button>
-</center>
-<br>
+  <!-- LEFT: INPUTS -->
+  <div class="left-col">
 
-<div id="mrrrr" class="mrr">
-<center>
-<div id="pi" class="pie">
-        <div class="duck">
+    <div id="errBanner" class="error-banner"></div>
+
+    <div class="card">
+      <div class="card-title">Configure your SIP</div>
+
+      <!-- Monthly Investment -->
+      <div class="input-row">
+        <div class="input-label">
+          <span>Monthly Investment</span>
+          <span id="disp-miv">₹5,000</span>
         </div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-miv" min="500" max="100000" step="500" value="5000" oninput="syncMiv(this.value)">
+          <input type="number" id="in-miv" min="1" max="1000000" value="5000" oninput="syncMivNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Return Rate -->
+      <div class="input-row">
+        <div class="input-label">
+          <span>Expected Annual Return</span>
+          <span id="disp-ar">12%</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-ar" min="1" max="50" step="0.5" value="12" oninput="syncAr(this.value)">
+          <input type="number" id="in-ar" min="1" max="70" value="12" oninput="syncArNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Duration -->
+      <div class="input-row">
+        <div class="input-label">
+          <span>Investment Duration</span>
+          <span id="disp-ip">10 yrs</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-ip" min="1" max="50" step="1" value="10" oninput="syncIp(this.value)">
+          <input type="number" id="in-ip" min="1" max="50" value="10" oninput="syncIpNum(this.value)">
+        </div>
+      </div>
     </div>
-</center>
 
-<br><div class="foot">
-<div class="fo">
- <div class="sp"> <span style="background-color:var(--xx);"></span></div><font>invested amount</font><font style="color:black;"></font><font>:</font><font id="ina"></font>
-</div>
-<div class="fo">
- <div class="sp"> <span style="background-color:var(--cc);"></span></div><font>Earned amount</font><font style="color:black;">_</font><font>:</font><font id="retu"></font>
-</div>
-<div class="fo">
- <div class="sp"> <span style="border:1px solid var(--cc);"></span></div><font>total amount earn</font><font>:</font><font id="tea"></font>
-</div>
-</div>
+    <!-- MOBILE RESULTS -->
+    <div id="mobileResults" class="results-panel card">
+      <div class="card-title">Your Results</div>
 
+      <div id="emptyState" class="empty-state">
+        <svg width="38" height="38" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-width="1.5" d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 6v4m0 4h.01"/>
+        </svg>
+        <p>Adjust the sliders above to see your projection.</p>
+      </div>
 
-</div>
-</div><br>
-<center>
-<button id="calcull" onclick="inpuV('mivn','arn','ipn')">calculate</button>
-</center></br>
-<h3 id="fc" onclick="fut()">Future Calculations...</h3>
+      <div id="resultsContent" style="display:none">
+        <div class="wealth-meter">
+          <div class="arc-container">
+            <svg viewBox="-10 -10 220 130">
+              <path class="arc-bg" d="M 10 100 A 90 90 0 0 1 190 100"/>
+              <path id="arcInvest" class="arc-invest" d="M 10 100 A 90 90 0 0 1 190 100" stroke-dasharray="283" stroke-dashoffset="283"/>
+              <path id="arcEarn"   class="arc-earn"   d="M 10 100 A 90 90 0 0 1 190 100" stroke-dasharray="283" stroke-dashoffset="283"/>
+            </svg>
+            <div class="arc-center">
+              <div class="arc-total" id="arcTotal">—</div>
+              <div class="arc-label">Wealth</div>
+            </div>
+          </div>
+        </div>
+        <div class="result-pills">
+          <div class="pill pill-invest"><div class="pill-label">Invested</div><div class="pill-value" id="res-inv">—</div></div>
+          <div class="pill pill-earn">  <div class="pill-label">Earned</div>  <div class="pill-value" id="res-earn">—</div></div>
+          <div class="pill pill-total"> <div class="pill-label">Total</div>   <div class="pill-value" id="res-total">—</div></div>
+        </div>
+        <div style="margin-top:18px">
+          <div class="card-title">Portfolio Split</div>
+          <div id="myChart"></div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--violet)"></div><span>Invested</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div><span>Returns</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<div id="tabbb" class="tab">
-<center>
-<table>
-      <tr> <th>Duration</th>  <th>Invest</th> <th>Earn</th><th>Future</th>  </tr>
-      
-      <tr> <td id="fv11"></td>  <td id="fv12"></td> <td id="fv13"></td> <td id="fv14"></td>  </tr>
-      
-      <tr> <td id="fv21"></td>  <td id="fv22"></td>  <td id="fv23"></td> <td id="fv24"></td> </tr>
-      
-      <tr> <td id="fv31"></td> <td id="fv32"></td><td id="fv33"></td> <td id="fv34"></td>  </tr>
-      
-      <tr> <td id="fv41"></td> <td id="fv42"></td> <td id="fv43"></td> <td id="fv44"></td>  </tr>
-      
-      <tr> <td id="fv51"></td><td id="fv52"></td> <td id="fv53"></td> <td id="fv54"></td> </tr>
-      
-      <tr class="tttt"> <td id="fv61"></td><td id="fv62"></td><td id="fv63"></td><td id="fv64"></td></tr>
-      
-      <tr class="tttt"> <td id="fv71"></td> <td id="fv72"></td> <td id="fv73"></td><td id="fv74"></td> </tr>
+  </div><!-- /left -->
 
-</table>
-</center>
-</div>
+  <!-- RIGHT -->
+  <div class="right-col">
 
+    <div id="desktopResults" class="card">
+      <div class="card-title">Wealth Projection</div>
+      <div id="desktopEmpty" class="empty-state">
+        <svg width="38" height="38" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <p>Adjust sliders to build your projection.</p>
+      </div>
+      <div id="desktopContent" style="display:none">
+        <div class="wealth-meter">
+          <div class="arc-container">
+            <svg viewBox="-10 -10 220 130">
+              <path class="arc-bg" d="M 10 100 A 90 90 0 0 1 190 100"/>
+              <path id="arcInvestD" class="arc-invest" d="M 10 100 A 90 90 0 0 1 190 100" stroke-dasharray="283" stroke-dashoffset="283"/>
+              <path id="arcEarnD"   class="arc-earn"   d="M 10 100 A 90 90 0 0 1 190 100" stroke-dasharray="283" stroke-dashoffset="283"/>
+            </svg>
+            <div class="arc-center">
+              <div class="arc-total" id="arcTotalD">—</div>
+              <div class="arc-label">Wealth</div>
+            </div>
+          </div>
+        </div>
+        <div class="result-pills">
+          <div class="pill pill-invest"><div class="pill-label">Invested</div><div class="pill-value" id="res-inv-d">—</div></div>
+          <div class="pill pill-earn">  <div class="pill-label">Earned</div>  <div class="pill-value" id="res-earn-d">—</div></div>
+          <div class="pill pill-total"> <div class="pill-label">Total</div>   <div class="pill-value" id="res-total-d">—</div></div>
+        </div>
+      </div>
+    </div>
 
-<script src="vision.js"></script>
+    <div class="card" id="futureCard" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Future Milestones</div>
+        <div class="section-sub" id="futureNote"></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Timeline</th><th>Invested</th><th>Earned</th><th>Total Value</th></tr></thead>
+          <tbody id="futureBody"></tbody>
+        </table>
+      </div>
+      <div class="line-chart-wrap">
+        <canvas id="milestoneChart"></canvas>
+      </div>
+    </div>
+
+  </div><!-- /right -->
+</main>
+
+<footer>VISION &nbsp;·&nbsp; Your wealth, visualised</footer>
+
+<script>
+/* ────────────── THEME ────────────── */
+const DARK_VANTA  = { backgroundColor:0x080912, color:0x7C3AED, color2:0xF59E0B };
+const LIGHT_VANTA = { backgroundColor:0xe8eaf8, color:0x7C3AED, color2:0xF59E0B };
+
+let isDark = true;
+let vantaEffect = null;
+
+function initVanta(opts){
+  if(vantaEffect) vantaEffect.destroy();
+  vantaEffect = VANTA.DOTS({
+    el: '#vanta-bg',
+    THREE: THREE,
+    mouseControls: true,
+    touchControls: true,
+    gyroControls: false,
+    minHeight: 200,
+    minWidth: 200,
+    scale: 1.0,
+    scaleMobile: 1.0,
+    backgroundColor: opts.backgroundColor,
+    color: opts.color,
+    color2: opts.color2,
+    size: 3.5,
+    spacing: 35,
+    showLines: true
+  });
+}
+
+function toggleTheme(){
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+  initVanta(isDark ? DARK_VANTA : LIGHT_VANTA);
+  // Redraw chart with new bg
+  if(lastInv !== null) drawDonut(lastInv, lastEar);
+  if(lastInv !== null) drawMilestoneChart(state.miv, state.ar, state.ip);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  initVanta(DARK_VANTA);
+});
+
+/* ────────────── STATE ────────────── */
+let state = { miv:5000, ar:12, ip:10 };
+let lastInv = null, lastEar = null;
+
+/* ────────────── SYNC ────────────── */
+function clamp(v,mn,mx){ return Math.min(Math.max(+v||0,mn),mx); }
+
+function syncMiv(v){
+  v=clamp(v,1,1000000); state.miv=v;
+  document.getElementById('sl-miv').value=Math.min(v,100000);
+  document.getElementById('in-miv').value=v;
+  document.getElementById('disp-miv').textContent='₹'+fmt(v);
+  validate(); compute();
+}
+function syncMivNum(v){ syncMiv(v); }
+
+function syncAr(v){
+  v=clamp(v,1,70); state.ar=v;
+  document.getElementById('sl-ar').value=Math.min(v,50);
+  document.getElementById('in-ar').value=v;
+  document.getElementById('disp-ar').textContent=v+'%';
+  validate(); compute();
+}
+function syncArNum(v){ syncAr(v); }
+
+function syncIp(v){
+  v=clamp(v,1,50); state.ip=v;
+  document.getElementById('sl-ip').value=v;
+  document.getElementById('in-ip').value=v;
+  document.getElementById('disp-ip').textContent=v+' yrs';
+  validate(); compute();
+}
+function syncIpNum(v){ syncIp(v); }
+
+/* ────────────── VALIDATION ────────────── */
+function validate(){
+  const b=document.getElementById('errBanner');
+  let msg='';
+  if(state.miv<1)     msg='Monthly investment must be at least ₹1.';
+  else if(state.ar<1) msg='Return rate must be between 1% and 70%.';
+  else if(state.ip<1) msg='Duration must be between 1 and 50 years.';
+  b.textContent=msg; b.style.display=msg?'block':'none';
+}
+
+/* ────────────── FORMAT ────────────── */
+function fmt(n){ return n.toLocaleString('en-IN',{maximumFractionDigits:0}); }
+
+function fmtShort(n){
+  if(n>=1e12) return (n/1e12).toFixed(1)+'T';
+  if(n>=1e7)  return (n/1e7).toFixed(1)+'Cr';
+  if(n>=1e5)  return (n/1e5).toFixed(1)+'L';
+  if(n>=1e3)  return (n/1e3).toFixed(1)+'K';
+  return n.toFixed(0);
+}
+
+function fmtPill(n){
+  if(n>=1e12) return `<span>${(n/1e12).toFixed(2)}</span><span class="unit"> T</span>`;
+  if(n>=1e7)  return `<span>${(n/1e7).toFixed(2)}</span><span class="unit"> Cr</span>`;
+  if(n>=1e5)  return `<span>${(n/1e5).toFixed(2)}</span><span class="unit"> L</span>`;
+  if(n>=1e3)  return `<span>${(n/1e3).toFixed(1)}</span><span class="unit"> K</span>`;
+  return `<span>${n.toFixed(0)}</span>`;
+}
+
+/* ────────────── SIP CALC ────────────── */
+function calcSIP(monthly,rate,years){
+  const mr=rate/12/100, n=years*12;
+  const fv=monthly*(((Math.pow(1+mr,n)-1)*(1+mr))/mr);
+  const inv=monthly*n;
+  return { fv, inv, ear:fv-inv };
+}
+
+/* ────────────── ARC ────────────── */
+const ARC_LEN=283;
+
+function setArc(ids, invPct){
+  const el_i = document.getElementById(ids.invest);
+  const el_e = document.getElementById(ids.earn);
+  if(!el_i||!el_e) return;
+  const iLen = ARC_LEN * invPct;
+  const eLen = ARC_LEN * (1-invPct);
+  el_i.style.strokeDasharray  = `${iLen} ${eLen+2}`;
+  el_i.style.strokeDashoffset = '0';
+  el_e.style.strokeDasharray  = `${eLen} ${iLen+2}`;
+  el_e.style.strokeDashoffset = `-${iLen}`;
+}
+
+/* ────────────── GOOGLE CHART ────────────── */
+let chartLoaded=false, pendingChart=null;
+
+google.charts.load('current',{'packages':['corechart']});
+google.charts.setOnLoadCallback(()=>{
+  chartLoaded=true;
+  if(pendingChart){ drawDonut(pendingChart.inv,pendingChart.ear); pendingChart=null; }
+});
+
+function drawDonut(inv,ear){
+  if(!chartLoaded){ pendingChart={inv,ear}; return; }
+  const bgColor = isDark ? 'transparent' : 'transparent';
+  const data=google.visualization.arrayToDataTable([
+    ['Type','Amount'],['Invested',inv],['Earned',ear]
+  ]);
+  const opts={
+    pieHole:0.58,
+    backgroundColor:bgColor,
+    legend:'none',
+    pieSliceTextStyle:{color:'transparent'},
+    pieSliceBorderColor:'transparent',
+    slices:{0:{color:'#7C3AED'},1:{color:'#F59E0B'}},
+    chartArea:{left:20,top:10,width:'90%',height:'90%'},
+    tooltip:{trigger:'none'}
+  };
+  const el=document.getElementById('myChart');
+  if(!el) return;
+  new google.visualization.PieChart(el).draw(data,opts);
+}
+
+/* ────────────── FUTURE TABLE ────────────── */
+function buildFutureRows(monthly,rate,years){
+  const y=new Date().getFullYear();
+  const maxFv=calcSIP(monthly,rate,years).fv;
+  let rows='';
+  for(let yr=1;yr<=years;yr++){
+    const {fv,inv,ear}=calcSIP(monthly,rate,yr);
+    const pct=Math.min(100,(fv/maxFv)*100);
+    rows+=`<tr>
+      <td class="td-year">${y+yr} <span style="font-size:10px">[${yr}y]</span></td>
+      <td class="td-invest">₹${fmtShort(inv)}</td>
+      <td class="td-earn">₹${fmtShort(ear)}</td>
+      <td class="td-total">
+        <div class="grow-bar-wrap">
+          <span>₹${fmtShort(fv)}</span>
+          <div class="grow-bar"><div class="grow-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+      </td>
+    </tr>`;
+  }
+  return rows;
+}
+
+/* ────────────── LINE CHART ────────────── */
+let milestoneChartInstance = null;
+
+function drawMilestoneChart(monthly, rate, years){
+  const y = new Date().getFullYear();
+  const labels=[], invData=[], earData=[], totalData=[];
+  for(let yr=1;yr<=years;yr++){
+    const {fv,inv,ear}=calcSIP(monthly,rate,yr);
+    labels.push(y+yr);
+    invData.push(Math.round(inv));
+    earData.push(Math.round(ear));
+    totalData.push(Math.round(fv));
+  }
+  const isDarkMode = document.documentElement.getAttribute('data-theme')==='dark';
+  const gridColor  = isDarkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+  const tickColor  = isDarkMode ? '#94A3B8' : '#6B7280';
+
+  const canvas = document.getElementById('milestoneChart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  if(milestoneChartInstance){ milestoneChartInstance.destroy(); milestoneChartInstance=null; }
+
+  milestoneChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Total Value',
+          data: totalData,
+          borderColor: '#10B981',
+          backgroundColor: 'rgba(16,185,129,0.10)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: years<=15 ? 4 : 2,
+          pointHoverRadius: 6,
+          borderWidth: 2,
+          order: 1
+        },
+        {
+          label: 'Earned',
+          data: earData,
+          borderColor: '#F59E0B',
+          backgroundColor: 'rgba(245,158,11,0.08)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: years<=15 ? 3 : 1,
+          pointHoverRadius: 5,
+          borderWidth: 1.5,
+          order: 2
+        },
+        {
+          label: 'Invested',
+          data: invData,
+          borderColor: '#A78BFA',
+          backgroundColor: 'rgba(124,58,237,0.08)',
+          fill: true,
+          tension: 0.2,
+          pointRadius: years<=15 ? 3 : 1,
+          pointHoverRadius: 5,
+          borderWidth: 1.5,
+          borderDash: [4,3],
+          order: 3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            color: tickColor,
+            boxWidth: 10,
+            boxHeight: 10,
+            padding: 14,
+            font: { size: 11, family: 'Inter' }
+          }
+        },
+        tooltip: {
+          backgroundColor: isDarkMode ? '#12141F' : '#fff',
+          borderColor: isDarkMode ? '#252840' : '#dde0f5',
+          borderWidth: 1,
+          titleColor: isDarkMode ? '#F1F5F9' : '#1E1B4B',
+          bodyColor: isDarkMode ? '#94A3B8' : '#6B7280',
+          padding: 10,
+          callbacks: {
+            label: ctx => ` ₹${fmtShort(ctx.raw)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: tickColor,
+            maxRotation: 45,
+            font: { size: 10 },
+            maxTicksLimit: Math.min(years, 15)
+          },
+          grid: { color: gridColor }
+        },
+        y: {
+          ticks: {
+            color: tickColor,
+            font: { size: 10 },
+            callback: v => '₹'+fmtShort(v)
+          },
+          grid: { color: gridColor }
+        }
+      }
+    }
+  });
+}
+
+/* ────────────── COMPUTE ────────────── */
+function compute(){
+  const {miv,ar,ip}=state;
+  if(!miv||!ar||!ip) return;
+  const {fv,inv,ear}=calcSIP(miv,ar,ip);
+  lastInv=inv; lastEar=ear;
+  const invPct=inv/fv;
+
+  // Show panels
+  document.getElementById('mobileResults').classList.add('active');
+  ['resultsContent','desktopContent'].forEach(id=>document.getElementById(id).style.display='block');
+  ['emptyState','desktopEmpty'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('futureCard').style.display='block';
+
+  // Arcs
+  setArc({invest:'arcInvest',earn:'arcEarn'},invPct);
+  setArc({invest:'arcInvestD',earn:'arcEarnD'},invPct);
+
+  // Totals
+  ['arcTotal','arcTotalD'].forEach(id=>document.getElementById(id).textContent='₹'+fmtShort(fv));
+
+  // Pills
+  [['res-inv','res-inv-d',inv],['res-earn','res-earn-d',ear],['res-total','res-total-d',fv]].forEach(([a,b,val])=>{
+    const h=fmtPill(val);
+    document.getElementById(a).innerHTML=h;
+    document.getElementById(b).innerHTML=h;
+  });
+
+  drawDonut(inv,ear);
+  document.getElementById('futureBody').innerHTML=buildFutureRows(miv,ar,ip);
+  document.getElementById('futureNote').textContent=`@ ${ar}% p.a.`;
+  drawMilestoneChart(miv,ar,ip);
+}
+
+/* ────────────── INIT ────────────── */
+syncMiv(5000); syncAr(12); syncIp(10);
+</script>
 </body>
 </html>
