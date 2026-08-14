@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+   <link rel="manifest" href="manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VISION</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- three.js + vanta dots -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.dots.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ────────────────────────────────────────────
+   THEME TOKENS
+──────────────────────────────────────────── */
+:root {
+  --violet:    #7C3AED;
+  --violet-l:  #A78BFA;
+  --gold:      #F59E0B;
+  --gold-l:    #FCD34D;
+  --green:     #10B981;
+  --red:       #EF4444;
+  --radius:    16px;
+  --radius-sm: 10px;
+  --transition: 0.35s cubic-bezier(.4,0,.2,1);
+}
+
+/* DARK */
+[data-theme="dark"] {
+  --bg:      #08091280;
+  --vanta-bg:#080912;
+  --surface: #12141F;
+  --card:    rgba(18,20,31,0.82);
+  --border:  #252840;
+  --text:    #F1F5F9;
+  --muted:   #94A3B8;
+  --dim:     #475569;
+  --input-bg:#0e101a;
+  --logo-from:#ffffff;
+  --toggle-icon: '☀️';
+  --vanta-color: 0x10B981;
+  --vanta-color2: 0x10B981;
+  --vanta-bg-hex: 0x080912;
+  --card-solid: #14161F;
+  --nm-dark:  rgba(0,0,0,0.5);
+  --nm-light: rgba(255,255,255,0.035);
+}
+
+/* LIGHT */
+[data-theme="light"] {
+  --bg:      rgba(240,242,255,0.7);
+  --vanta-bg:#e8eaf8;
+  --surface: #f0f2ff;
+  --card:    rgba(255,255,255,0.88);
+  --border:  #dde0f5;
+  --text:    #1E1B4B;
+  --muted:   #6B7280;
+  --dim:     #9CA3AF;
+  --input-bg:#f5f6ff;
+  --logo-from:#1E1B4B;
+  --toggle-icon: '🌙';
+  --vanta-color: 0x10B981;
+  --vanta-color2: 0x10B981;
+  --vanta-bg-hex: 0xe8eaf8;
+  --card-solid: #eef0fb;
+  --nm-dark:  rgba(30,27,75,0.16);
+  --nm-light: rgba(255,255,255,0.9);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+/* ── VANTA CANVAS ── */
+#vanta-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  transition: background var(--transition);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: transparent;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: color var(--transition);
+}
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  z-index: 20;
+  padding: 20px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 6px;
+  background: linear-gradient(135deg, var(--logo-from) 30%, var(--green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: background var(--transition);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.badge {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── THEME TOGGLE ── */
+.theme-toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: transform 0.3s, border-color 0.3s, background var(--transition);
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 0;
+}
+.theme-toggle:hover { transform: rotate(20deg) scale(1.1); border-color: var(--green); }
+
+/* ── HERO QUOTE ── */
+.hero-quote {
+  position: relative;
+  z-index: 10;
+  margin: 22px 20px 0;
+  background: var(--card-solid);
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  box-shadow:
+    6px 6px 14px var(--nm-dark),
+    -5px -5px 12px var(--nm-light);
+  transition: box-shadow 0.3s ease;
+}
+.hero-quote::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--green);
+  border-radius: 3px 0 0 3px;
+}
+.quote-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--green);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.quote-author {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600; font-size: 12px;
+  color: var(--gold); margin-bottom: 3px;
+}
+.quote-body {
+  font-size: 11px; color: var(--muted);
+  line-height: 1.6; font-style: italic;
+}
+
+/* ── MAIN LAYOUT ── */
+main {
+  position: relative;
+  z-index: 10;
+  padding: 16px 16px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (min-width: 900px) {
+  main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    padding: 20px 32px 60px;
+    align-items: start;
+  }
+  header { padding: 24px 40px 0; }
+  .hero-quote { margin: 22px 32px 0; }
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--card-solid);
+  border: none;
+  border-radius: var(--radius);
+  padding: 22px 18px;
+  margin-bottom: 14px;
+  box-shadow:
+    7px 7px 16px var(--nm-dark),
+    -6px -6px 14px var(--nm-light);
+  transition: box-shadow 0.3s ease;
+}
+.card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 18px;
+}
+
+/* ── SLIDERS ── */
+.input-row { margin-bottom: 26px; }
+.input-row:last-child { margin-bottom: 0; }
+
+.input-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.input-label span:first-child {
+  font-size: 13px; font-weight: 500; color: var(--text);
+}
+.input-label span:last-child {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 17px; font-weight: 700;
+  color: var(--green);
+  min-width: 80px; text-align: right;
+}
+
+.slider-wrap { display: flex; align-items: center; gap: 10px; }
+
+input[type="range"] {
+  -webkit-appearance: none;
+  flex: 1; height: 4px;
+  background: var(--border);
+  border-radius: 4px;
+  outline: none; cursor: pointer;
+  transition: background var(--transition);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--green);
+  border: 2px solid #fff;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+input[type="range"]::-webkit-slider-thumb:active {
+  box-shadow: 0 0 0 8px rgba(16,185,129,0.2);
+}
+
+input[type="number"] {
+  width: 74px; height: 36px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 600;
+  text-align: center; outline: none;
+  transition: border-color 0.2s, background var(--transition), color var(--transition);
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type="number"]:focus { border-color: var(--green); }
+input[type="number"].invalid { border-color: var(--red); background: rgba(239,68,68,0.08); }
+
+/* ── ERROR ── */
+.error-banner {
+  display: none;
+  background: rgba(239,68,68,0.12);
+  border: 1px solid var(--red);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 12px; color: #FCA5A5;
+  margin-bottom: 14px;
+  animation: slideDown 0.3s ease;
+}
+@keyframes slideDown {
+  from { opacity:0; transform:translateY(-6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── SIP HIGHLIGHT ── */
+.sip-highlight {
+  text-align: center;
+  padding: 16px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--card-solid);
+  box-shadow:
+    inset 3px 3px 7px var(--nm-dark),
+    inset -3px -3px 7px var(--nm-light);
+  margin-bottom: 18px;
+}
+.sip-highlight-label {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 6px;
+}
+.sip-highlight-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 26px; font-weight: 700;
+  color: var(--green);
+}
+.sip-highlight-value .unit { font-size: 14px; font-weight: 500; color: var(--dim); }
+.sip-highlight-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* ── STAT STRIP ── */
+.stat-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.stat-box {
+  background: var(--card-solid);
+  border-radius: var(--radius-sm);
+  padding: 10px 8px; text-align: center;
+  box-shadow:
+    inset 3px 3px 7px var(--nm-dark),
+    inset -3px -3px 7px var(--nm-light);
+}
+.stat-box-label {
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 4px;
+}
+.stat-box-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px; font-weight: 700; color: var(--text);
+}
+
+/* ── WEALTH METER ARC ── */
+.wealth-meter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 20px 0 12px;
+}
+.arc-container {
+  position: relative;
+  width: 200px; height: 110px;
+}
+.arc-container svg { width: 200px; height: 110px; overflow: visible; }
+.arc-bg      { stroke: var(--border); fill: none; stroke-width: 12; stroke-linecap: round; transition: stroke var(--transition); }
+.arc-invest  { fill: none; stroke-width: 12; stroke-linecap: round; stroke: var(--violet);
+               transition: stroke-dasharray 0.8s cubic-bezier(.4,0,.2,1), stroke-dashoffset 0.8s cubic-bezier(.4,0,.2,1); }
+.arc-earn    { fill: none; stroke-width: 12; stroke-linecap: round; stroke: var(--gold);
+               transition: stroke-dasharray 0.8s cubic-bezier(.4,0,.2,1), stroke-dashoffset 0.8s cubic-bezier(.4,0,.2,1); }
+
+.arc-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -10%);
+  text-align: center;
+}
+.arc-total {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 19px; font-weight: 700;
+  color: var(--text); line-height: 1;
+}
+.arc-label {
+  font-size: 10px; color: var(--dim);
+  margin-top: 2px; letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ── RESULT PILLS ── */
+.result-pills {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px; margin-top: 18px;
+}
+.pill {
+  background: var(--card-solid);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px 8px; text-align: center;
+  box-shadow:
+    inset 3px 3px 7px var(--nm-dark),
+    inset -3px -3px 7px var(--nm-light);
+  transition: box-shadow 0.3s ease;
+}
+.pill-label {
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 5px;
+}
+.pill-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 700; line-height: 1.2;
+}
+.pill-value .unit { font-size: 10px; font-weight: 500; color: var(--dim); }
+.pill-invest .pill-value { color: var(--violet-l); }
+.pill-earn   .pill-value { color: var(--gold); }
+.pill-total  .pill-value { color: var(--green); }
+
+/* ── FUTURE TABLE ── */
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+.section-title { font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; color:var(--text); }
+.section-sub   { font-size:11px; color:var(--dim); }
+.table-wrap    { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+table { width:100%; min-width:400px; border-collapse:collapse; }
+
+thead th {
+  font-size:10px; font-weight:600;
+  letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--dim); padding:8px 10px;
+  text-align:left; border-bottom:1px solid var(--border);
+}
+tbody tr { transition: background 0.15s; }
+tbody tr:hover { background: rgba(16,185,129,0.06); }
+tbody td { padding:10px; font-size:12px; border-bottom:1px solid var(--border); color:var(--text); }
+tbody tr:last-child td { border-bottom:none; }
+
+.td-year    { font-size:11px; color:var(--dim); white-space:nowrap; }
+.td-invest  { color:var(--violet-l); font-family:'Space Grotesk',sans-serif; font-weight:600; }
+.td-earn    { color:var(--gold);     font-family:'Space Grotesk',sans-serif; font-weight:600; }
+.td-total   { color:var(--green);    font-family:'Space Grotesk',sans-serif; font-weight:700; }
+
+.grow-bar-wrap { display:flex; align-items:center; gap:6px; }
+.grow-bar {
+  height:4px; background:var(--border);
+  border-radius:4px; flex:1; overflow:hidden;
+}
+.grow-bar-fill {
+  height:100%; border-radius:4px;
+  background: var(--green);
+  transition: width 0.6s ease;
+}
+
+/* ── LINE CHART ── */
+.line-chart-wrap {
+  margin-top: 18px;
+  position: relative;
+  height: 220px;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align:center; padding:36px 20px; color:var(--dim); }
+.empty-state svg { opacity:0.3; margin-bottom:10px; }
+.empty-state p { font-size:13px; }
+
+/* ── MOBILE RESULTS ── */
+.results-panel { display:none; }
+.results-panel.active { display:block; }
+
+/* ── FOOTER ── */
+footer {
+  position:relative; z-index:10;
+  text-align:center; padding:0 20px 28px;
+  font-size:11px; color:var(--dim); letter-spacing:1px;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* ── DESKTOP ── */
+@media (min-width:900px) {
+  .left-col  { grid-column:1; }
+  .right-col { grid-column:2; }
+  .results-panel { display:block !important; }
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade-up { animation: fadeUp 0.5s ease both; }
+
+/* ── THEME TRANSITION ── */
+*, *::before, *::after {
+  transition: background-color var(--transition),
+              border-color var(--transition),
+              color var(--transition);
+}
+input[type="range"],
+input[type="range"]::-webkit-slider-thumb { transition: none; }
+</style>
+</head>
+<body>
+
+<!-- VANTA BACKGROUND -->
+<div id="vanta-bg"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">VISION</div>
+  <div class="header-right">
+    <div class="badge">Retirement Calculator</div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle dark/light theme">
+      <span id="themeIcon">☀️</span>
+    </button>
+  </div>
+</header>
+
+<!-- QUOTE -->
+<div class="hero-quote">
+  <img class="quote-avatar"
+       src="https://raw.githubusercontent.com/microintel/endgram/main/photo/bogle.png"
+       alt="John Bogle" onerror="this.style.display='none'">
+  <div>
+    <div class="quote-author">John Bogle</div>
+    <div class="quote-body">"Time is your friend; impulse is your enemy. Start planning for retirement today."</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main>
+
+  <!-- LEFT: INPUTS -->
+  <div class="left-col">
+
+    <div id="errBanner" class="error-banner"></div>
+
+    <div class="card">
+      <div class="card-title">Plan Your Retirement</div>
+
+      <!-- Current Age -->
+      <div class="input-row">
+        <div class="input-label">
+          <span>Current Age</span>
+          <span id="disp-ca">30 yrs</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-ca" min="15" max="70" step="1" value="30" oninput="syncCa(this.value)">
+          <input type="number" id="in-ca" min="15" max="90" value="30" oninput="syncCaNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Retirement Age -->
+      <div class="input-row">
+        <div class="input-label">
+          <span>Retirement Age</span>
+          <span id="disp-ra">58 yrs</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-ra" min="35" max="75" step="1" value="58" oninput="syncRa(this.value)">
+          <input type="number" id="in-ra" min="35" max="90" value="58" oninput="syncRaNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Life Expectancy -->
+      <div class="input-row">
+        <div class="input-label">
+          <span>Life Expectancy</span>
+          <span id="disp-le">80 yrs</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-le" min="50" max="100" step="1" value="80" oninput="syncLe(this.value)">
+          <input type="number" id="in-le" min="50" max="110" value="80" oninput="syncLeNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Expected Rate of Return -->
+      <div class="input-row">
+        <div class="input-label">
+          <span>Expected Rate of Return (P.A)</span>
+          <span id="disp-ror">12%</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-ror" min="1" max="30" step="0.5" value="12" oninput="syncRor(this.value)">
+          <input type="number" id="in-ror" min="0" max="50" value="12" oninput="syncRorNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Inflation Rate -->
+      <div class="input-row">
+        <div class="input-label">
+          <span>Expected Inflation Rate</span>
+          <span id="disp-inf">6%</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-inf" min="0" max="15" step="0.5" value="6" oninput="syncInf(this.value)">
+          <input type="number" id="in-inf" min="0" max="30" value="6" oninput="syncInfNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Current Annual Expense -->
+      <div class="input-row">
+        <div class="input-label">
+          <span>Current Annual Expense</span>
+          <span id="disp-exp">₹3,00,000</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-exp" min="0" max="2000000" step="10000" value="300000" oninput="syncExp(this.value)">
+          <input type="number" id="in-exp" min="0" max="100000000" value="300000" oninput="syncExpNum(this.value)">
+        </div>
+      </div>
+    </div>
+
+    <!-- MOBILE RESULTS -->
+    <div id="mobileResults" class="results-panel card">
+      <div class="card-title">Your Retirement Plan</div>
+
+      <div id="emptyState" class="empty-state">
+        <svg width="38" height="38" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-width="1.5" d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 6v4m0 4h.01"/>
+        </svg>
+        <p>Adjust the sliders above to see your retirement plan.</p>
+      </div>
+
+      <div id="resultsContent" style="display:none">
+        <div class="sip-highlight">
+          <div class="sip-highlight-label">Monthly SIP Required</div>
+          <div class="sip-highlight-value" id="res-sip">—</div>
+          <div class="sip-highlight-sub" id="res-sip-sub"></div>
+        </div>
+
+        <div class="stat-strip">
+          <div class="stat-box"><div class="stat-box-label">Years to Retire</div><div class="stat-box-value" id="stat-n1">—</div></div>
+          <div class="stat-box"><div class="stat-box-label">Years in Retirement</div><div class="stat-box-value" id="stat-n2">—</div></div>
+        </div>
+
+        <div class="wealth-meter">
+          <div class="arc-container">
+            <svg viewBox="-10 -10 220 130">
+              <path class="arc-bg" d="M 10 100 A 90 90 0 0 1 190 100"/>
+              <path id="arcInvest" class="arc-invest" d="M 10 100 A 90 90 0 0 1 190 100" stroke-dasharray="283" stroke-dashoffset="283"/>
+              <path id="arcEarn"   class="arc-earn"   d="M 10 100 A 90 90 0 0 1 190 100" stroke-dasharray="283" stroke-dashoffset="283"/>
+            </svg>
+            <div class="arc-center">
+              <div class="arc-total" id="arcTotal">—</div>
+              <div class="arc-label">Corpus</div>
+            </div>
+          </div>
+        </div>
+        <div class="result-pills">
+          <div class="pill pill-invest"><div class="pill-label">Invested</div><div class="pill-value" id="res-inv">—</div></div>
+          <div class="pill pill-earn">  <div class="pill-label">Growth</div>  <div class="pill-value" id="res-earn">—</div></div>
+          <div class="pill pill-total"> <div class="pill-label">Corpus</div>   <div class="pill-value" id="res-total">—</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <!-- RIGHT -->
+  <div class="right-col">
+
+    <div id="desktopResults" class="card">
+      <div class="card-title">Retirement Corpus Projection</div>
+      <div id="desktopEmpty" class="empty-state">
+        <svg width="38" height="38" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <p>Adjust inputs to build your retirement plan.</p>
+      </div>
+      <div id="desktopContent" style="display:none">
+        <div class="sip-highlight">
+          <div class="sip-highlight-label">Monthly SIP Required</div>
+          <div class="sip-highlight-value" id="res-sip-d">—</div>
+          <div class="sip-highlight-sub" id="res-sip-sub-d"></div>
+        </div>
+
+        <div class="stat-strip">
+          <div class="stat-box"><div class="stat-box-label">Years to Retire</div><div class="stat-box-value" id="stat-n1-d">—</div></div>
+          <div class="stat-box"><div class="stat-box-label">Years in Retirement</div><div class="stat-box-value" id="stat-n2-d">—</div></div>
+        </div>
+
+        <div class="wealth-meter">
+          <div class="arc-container">
+            <svg viewBox="-10 -10 220 130">
+              <path class="arc-bg" d="M 10 100 A 90 90 0 0 1 190 100"/>
+              <path id="arcInvestD" class="arc-invest" d="M 10 100 A 90 90 0 0 1 190 100" stroke-dasharray="283" stroke-dashoffset="283"/>
+              <path id="arcEarnD"   class="arc-earn"   d="M 10 100 A 90 90 0 0 1 190 100" stroke-dasharray="283" stroke-dashoffset="283"/>
+            </svg>
+            <div class="arc-center">
+              <div class="arc-total" id="arcTotalD">—</div>
+              <div class="arc-label">Corpus</div>
+            </div>
+          </div>
+        </div>
+        <div class="result-pills">
+          <div class="pill pill-invest"><div class="pill-label">Invested</div><div class="pill-value" id="res-inv-d">—</div></div>
+          <div class="pill pill-earn">  <div class="pill-label">Growth</div>  <div class="pill-value" id="res-earn-d">—</div></div>
+          <div class="pill pill-total"> <div class="pill-label">Corpus</div>   <div class="pill-value" id="res-total-d">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="futureCard" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Corpus Build-Up</div>
+        <div class="section-sub" id="futureNote"></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Timeline</th><th>Invested</th><th>Growth</th><th>Corpus</th></tr></thead>
+          <tbody id="futureBody"></tbody>
+        </table>
+      </div>
+      <div class="line-chart-wrap">
+        <canvas id="milestoneChart"></canvas>
+      </div>
+    </div>
+
+  </div><!-- /right -->
+</main>
+
+<footer>VISION &nbsp;·&nbsp; Your wealth, visualised</footer>
+
+<script>
+/* ────────────── THEME ────────────── */
+const DARK_VANTA  = { backgroundColor:0x080912, color:0x10B981, color2:0x10B981 };
+const LIGHT_VANTA = { backgroundColor:0xe8eaf8, color:0x10B981, color2:0x10B981 };
+
+let isDark = true;
+let vantaEffect = null;
+
+function initVanta(opts){
+  if(vantaEffect) vantaEffect.destroy();
+  vantaEffect = VANTA.DOTS({
+    el: '#vanta-bg',
+    THREE: THREE,
+    mouseControls: true,
+    touchControls: true,
+    gyroControls: false,
+    minHeight: 200,
+    minWidth: 200,
+    scale: 1.0,
+    scaleMobile: 1.0,
+    backgroundColor: opts.backgroundColor,
+    color: opts.color,
+    color2: opts.color2,
+    size: 2.5,
+    spacing: 30,
+    showLines: false
+  });
+}
+
+function toggleTheme(){
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+  initVanta(isDark ? DARK_VANTA : LIGHT_VANTA);
+  if(lastPlan) drawMilestoneChart(lastPlan);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  initVanta(DARK_VANTA);
+});
+
+/* ────────────── STATE ────────────── */
+let state = { ca:30, ra:58, le:80, ror:12, inf:6, exp:300000 };
+let lastPlan = null;
+
+/* ────────────── SYNC ────────────── */
+function clamp(v,mn,mx){ return Math.min(Math.max(+v||0,mn),mx); }
+
+function syncCa(v){
+  v=clamp(v,15,90); state.ca=v;
+  document.getElementById('sl-ca').value=Math.min(v,70);
+  document.getElementById('in-ca').value=v;
+  document.getElementById('disp-ca').textContent=v+' yrs';
+  validate(); compute();
+}
+function syncCaNum(v){ syncCa(v); }
+
+function syncRa(v){
+  v=clamp(v,35,90); state.ra=v;
+  document.getElementById('sl-ra').value=Math.min(v,75);
+  document.getElementById('in-ra').value=v;
+  document.getElementById('disp-ra').textContent=v+' yrs';
+  validate(); compute();
+}
+function syncRaNum(v){ syncRa(v); }
+
+function syncLe(v){
+  v=clamp(v,50,110); state.le=v;
+  document.getElementById('sl-le').value=Math.min(v,100);
+  document.getElementById('in-le').value=v;
+  document.getElementById('disp-le').textContent=v+' yrs';
+  validate(); compute();
+}
+function syncLeNum(v){ syncLe(v); }
+
+function syncRor(v){
+  v=clamp(v,0,50); state.ror=v;
+  document.getElementById('sl-ror').value=Math.min(v,30);
+  document.getElementById('in-ror').value=v;
+  document.getElementById('disp-ror').textContent=v+'%';
+  validate(); compute();
+}
+function syncRorNum(v){ syncRor(v); }
+
+function syncInf(v){
+  v=clamp(v,0,30); state.inf=v;
+  document.getElementById('sl-inf').value=Math.min(v,15);
+  document.getElementById('in-inf').value=v;
+  document.getElementById('disp-inf').textContent=v+'%';
+  validate(); compute();
+}
+function syncInfNum(v){ syncInf(v); }
+
+function syncExp(v){
+  v=clamp(v,0,100000000); state.exp=v;
+  document.getElementById('sl-exp').value=Math.min(v,2000000);
+  document.getElementById('in-exp').value=v;
+  document.getElementById('disp-exp').textContent='₹'+fmt(v);
+  validate(); compute();
+}
+function syncExpNum(v){ syncExp(v); }
+
+/* ────────────── VALIDATION ────────────── */
+function validate(){
+  const b=document.getElementById('errBanner');
+  let msg='';
+  const {ca,ra,le,ror,inf,exp}=state;
+  if(ca<0) msg='Current age cannot be negative.';
+  else if(ra<=ca) msg='Retirement age must be greater than current age.';
+  else if(le<=ra) msg='Life expectancy must be greater than retirement age.';
+  else if(ror<0 || ror>50) msg='Rate of return must be between 0% and 50%.';
+  else if(inf<0 || inf>30) msg='Inflation rate must be between 0% and 30%.';
+  else if(exp<0) msg='Current annual expense cannot be negative.';
+  b.textContent=msg; b.style.display=msg?'block':'none';
+}
+
+/* ────────────── FORMAT ────────────── */
+function fmt(n){ return n.toLocaleString('en-IN',{maximumFractionDigits:0}); }
+
+function fmtShort(n){
+  if(n>=1e12) return (n/1e12).toFixed(1)+'T';
+  if(n>=1e7)  return (n/1e7).toFixed(1)+'Cr';
+  if(n>=1e5)  return (n/1e5).toFixed(1)+'L';
+  if(n>=1e3)  return (n/1e3).toFixed(1)+'K';
+  return n.toFixed(0);
+}
+
+function fmtPill(n){
+  if(n>=1e12) return `<span>${(n/1e12).toFixed(2)}</span><span class="unit"> T</span>`;
+  if(n>=1e7)  return `<span>${(n/1e7).toFixed(2)}</span><span class="unit"> Cr</span>`;
+  if(n>=1e5)  return `<span>${(n/1e5).toFixed(2)}</span><span class="unit"> L</span>`;
+  if(n>=1e3)  return `<span>${(n/1e3).toFixed(1)}</span><span class="unit"> K</span>`;
+  return `<span>${n.toFixed(0)}</span>`;
+}
+
+/* ────────────── RETIREMENT MATH ────────────── */
+// Future value of a monthly SIP given monthly amount, annual rate %, years
+function sipFV(monthly,rate,years){
+  const mr=rate/12/100, n=years*12;
+  return mr>0 ? monthly*(((Math.pow(1+mr,n)-1)*(1+mr))/mr) : monthly*n;
+}
+// Monthly SIP needed to reach a target future value
+function sipRequired(target,rate,years){
+  const mr=rate/12/100, n=years*12;
+  if(n<=0) return target;
+  return mr>0 ? target / (((Math.pow(1+mr,n)-1)*(1+mr))/mr) : target/n;
+}
+
+function calcPlan(){
+  const {ca,ra,le,ror,inf,exp}=state;
+  const n1 = ra-ca;   // years to retirement
+  const n2 = le-ra;   // years in retirement
+  if(n1<=0 || n2<=0) return null;
+
+  const r = ror/100, g = inf/100;
+
+  // Annual expense projected to the year of retirement
+  const futureExpense = exp * Math.pow(1+g, n1);
+
+  // Corpus needed at retirement to fund a growing annuity (expenses grow with
+  // inflation each year during retirement) for n2 years, discounted at ror.
+  let corpus;
+  if(Math.abs(r-g) < 1e-6){
+    corpus = futureExpense * n2 / (1+r);
+  } else {
+    corpus = futureExpense * (1 - Math.pow((1+g)/(1+r), n2)) / (r-g);
+  }
+  corpus = Math.max(corpus,0);
+
+  const monthlySip = sipRequired(corpus, ror, n1);
+  const totalInvested = monthlySip * n1 * 12;
+  const growth = corpus - totalInvested;
+
+  return { n1, n2, futureExpense, corpus, monthlySip, totalInvested, growth, ror };
+}
+
+/* ────────────── ARC ────────────── */
+const ARC_LEN=283;
+
+function setArc(ids, invPct){
+  const el_i = document.getElementById(ids.invest);
+  const el_e = document.getElementById(ids.earn);
+  if(!el_i||!el_e) return;
+  const iLen = ARC_LEN * invPct;
+  const eLen = ARC_LEN * (1-invPct);
+  el_i.style.strokeDasharray  = `${iLen} ${eLen+2}`;
+  el_i.style.strokeDashoffset = '0';
+  el_e.style.strokeDasharray  = `${eLen} ${iLen+2}`;
+  el_e.style.strokeDashoffset = `-${iLen}`;
+}
+
+/* ────────────── CORPUS BUILD-UP TABLE ────────────── */
+function buildFutureRows(plan){
+  const {monthlySip,ror,n1,corpus}=plan;
+  const y=new Date().getFullYear();
+  let rows='';
+  for(let yr=1;yr<=n1;yr++){
+    const inv = monthlySip*yr*12;
+    const fv  = sipFV(monthlySip,ror,yr);
+    const ear = fv-inv;
+    const pct = corpus>0 ? Math.min(100,(fv/corpus)*100) : 0;
+    rows+=`<tr>
+      <td class="td-year">${y+yr} <span style="font-size:10px">[${state.ca+yr}y]</span></td>
+      <td class="td-invest">₹${fmtShort(inv)}</td>
+      <td class="td-earn">₹${fmtShort(ear)}</td>
+      <td class="td-total">
+        <div class="grow-bar-wrap">
+          <span>₹${fmtShort(fv)}</span>
+          <div class="grow-bar"><div class="grow-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+      </td>
+    </tr>`;
+  }
+  return rows;
+}
+
+/* ────────────── LINE CHART ────────────── */
+let milestoneChartInstance = null;
+
+function drawMilestoneChart(plan){
+  const {monthlySip,ror,n1}=plan;
+  const y = new Date().getFullYear();
+  const labels=[], invData=[], earData=[], totalData=[];
+  for(let yr=1;yr<=n1;yr++){
+    const inv = monthlySip*yr*12;
+    const fv  = sipFV(monthlySip,ror,yr);
+    const ear = fv-inv;
+    labels.push(y+yr);
+    invData.push(Math.round(inv));
+    earData.push(Math.round(ear));
+    totalData.push(Math.round(fv));
+  }
+  const isDarkMode = document.documentElement.getAttribute('data-theme')==='dark';
+  const gridColor  = isDarkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+  const tickColor  = isDarkMode ? '#94A3B8' : '#6B7280';
+
+  const canvas = document.getElementById('milestoneChart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  if(milestoneChartInstance){ milestoneChartInstance.destroy(); milestoneChartInstance=null; }
+
+  milestoneChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Corpus',
+          data: totalData,
+          borderColor: '#10B981',
+          backgroundColor: 'rgba(16,185,129,0.10)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: n1<=15 ? 4 : 2,
+          pointHoverRadius: 6,
+          borderWidth: 2,
+          order: 1
+        },
+        {
+          label: 'Growth',
+          data: earData,
+          borderColor: '#F59E0B',
+          backgroundColor: 'rgba(245,158,11,0.08)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: n1<=15 ? 3 : 1,
+          pointHoverRadius: 5,
+          borderWidth: 1.5,
+          order: 2
+        },
+        {
+          label: 'Invested',
+          data: invData,
+          borderColor: '#A78BFA',
+          backgroundColor: 'rgba(124,58,237,0.08)',
+          fill: true,
+          tension: 0.2,
+          pointRadius: n1<=15 ? 3 : 1,
+          pointHoverRadius: 5,
+          borderWidth: 1.5,
+          borderDash: [4,3],
+          order: 3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            color: tickColor,
+            boxWidth: 10,
+            boxHeight: 10,
+            padding: 14,
+            font: { size: 11, family: 'Inter' }
+          }
+        },
+        tooltip: {
+          backgroundColor: isDarkMode ? '#12141F' : '#fff',
+          borderColor: isDarkMode ? '#252840' : '#dde0f5',
+          borderWidth: 1,
+          titleColor: isDarkMode ? '#F1F5F9' : '#1E1B4B',
+          bodyColor: isDarkMode ? '#94A3B8' : '#6B7280',
+          padding: 10,
+          callbacks: {
+            label: ctx => ` ₹${fmtShort(ctx.raw)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: tickColor,
+            maxRotation: 45,
+            font: { size: 10 },
+            maxTicksLimit: Math.min(n1, 15)
+          },
+          grid: { color: gridColor }
+        },
+        y: {
+          ticks: {
+            color: tickColor,
+            font: { size: 10 },
+            callback: v => '₹'+fmtShort(v)
+          },
+          grid: { color: gridColor }
+        }
+      }
+    }
+  });
+}
+
+/* ────────────── COMPUTE ────────────── */
+function compute(){
+  const plan = calcPlan();
+
+  if(!plan){
+    lastPlan = null;
+    ['resultsContent','desktopContent'].forEach(id=>document.getElementById(id).style.display='none');
+    ['emptyState','desktopEmpty'].forEach(id=>document.getElementById(id).style.display='block');
+    document.getElementById('futureCard').style.display='none';
+    document.getElementById('mobileResults').classList.add('active');
+    return;
+  }
+  lastPlan = plan;
+  const {n1,n2,futureExpense,corpus,monthlySip,totalInvested,growth}=plan;
+  const invPct = corpus>0 ? totalInvested/corpus : 0;
+
+  // Show panels
+  document.getElementById('mobileResults').classList.add('active');
+  ['resultsContent','desktopContent'].forEach(id=>document.getElementById(id).style.display='block');
+  ['emptyState','desktopEmpty'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('futureCard').style.display='block';
+
+  // SIP highlight
+  ['res-sip','res-sip-d'].forEach(id=>document.getElementById(id).innerHTML='₹'+fmt(Math.round(monthlySip)));
+  ['res-sip-sub','res-sip-sub-d'].forEach(id=>document.getElementById(id).textContent=`for ${n1} years to build a ₹${fmt(Math.round(corpus))} corpus`);
+
+  // Stat strip
+  ['stat-n1','stat-n1-d'].forEach(id=>document.getElementById(id).textContent=n1+' yrs');
+  ['stat-n2','stat-n2-d'].forEach(id=>document.getElementById(id).textContent=n2+' yrs');
+
+  // Arcs
+  setArc({invest:'arcInvest',earn:'arcEarn'},invPct);
+  setArc({invest:'arcInvestD',earn:'arcEarnD'},invPct);
+
+  // Totals
+  ['arcTotal','arcTotalD'].forEach(id=>document.getElementById(id).textContent='₹'+fmtShort(corpus));
+
+  // Pills
+  [['res-inv','res-inv-d',totalInvested],['res-earn','res-earn-d',growth],['res-total','res-total-d',corpus]].forEach(([a,b,val])=>{
+    const h=fmtPill(val);
+    document.getElementById(a).innerHTML=h;
+    document.getElementById(b).innerHTML=h;
+  });
+
+  document.getElementById('futureBody').innerHTML=buildFutureRows(plan);
+  document.getElementById('futureNote').textContent=`Annual expense at retirement: ₹${fmtShort(futureExpense)}`;
+  drawMilestoneChart(plan);
+}
+
+/* ────────────── INIT ────────────── */
+syncCa(30); syncRa(58); syncLe(80); syncRor(12); syncInf(6); syncExp(300000);
+</script>
+</body>
+</html>

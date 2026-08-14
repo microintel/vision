@@ -38,5 +38,25 @@
     "accent": "violet",
     "formula": "CAGR = (F ÷ I)^(1/n) − 1",
     "icon": "percent"
+  },
+  {
+    "id": "retirement",
+    "name": "Retirement Planning Calculator",
+    "tagline": "Build the corpus for a happy retirement",
+    "description": "Work out the retirement corpus you will need based on your current age, retirement age, life expectancy, expected returns, and inflation — plus the monthly SIP required to get there.",
+    "file": "retirement.html",
+    "accent": "green",
+    "formula": "Corpus = FV(Expense) × [1 − ((1+g)/(1+r))ⁿ] / (r − g)",
+    "icon": "shield"
+  },
+  {
+    "id": "fd-vs-market",
+    "name": "FD vs Market Calculator",
+    "tagline": "Safety versus growth, side by side",
+    "description": "Compare what your money would grow to in a Fixed Deposit versus the market, for either a monthly investment or a one-time lumpsum, over your chosen tenure.",
+    "file": "fd-vs-market.html",
+    "accent": "gold",
+    "formula": "FD: A = P(1+r/100)ⁿ  ·  RD/SIP: FV = P×[(1+r)ⁿ−1]×(1+r)/r",
+    "icon": "scale"
   }
 ]
