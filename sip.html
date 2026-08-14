@@ -2,6 +2,56 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
+<script>
+/* ── Theme persistence (IndexedDB) — keeps theme in sync across all Vision pages ── */
+(function(){
+  document.documentElement.style.visibility = 'hidden';
+  var DB_NAME = 'VisionAppDB', STORE = 'settings', KEY = 'theme';
+  var bc = ('BroadcastChannel' in window) ? new BroadcastChannel('vision-theme') : null;
+  var dbPromise = new Promise(function(resolve){
+    try{
+      var req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = function(e){ e.target.result.createObjectStore(STORE); };
+      req.onsuccess = function(e){ resolve(e.target.result); };
+      req.onerror = function(){ resolve(null); };
+    }catch(err){ resolve(null); }
+  });
+  function getTheme(){
+    return dbPromise.then(function(db){
+      return new Promise(function(resolve){
+        if(!db) return resolve('dark');
+        try{
+          var tx = db.transaction(STORE,'readonly');
+          var rq = tx.objectStore(STORE).get(KEY);
+          rq.onsuccess = function(){ resolve(rq.result || 'dark'); };
+          rq.onerror = function(){ resolve('dark'); };
+        }catch(err){ resolve('dark'); }
+      });
+    });
+  }
+  function setTheme(theme){
+    return dbPromise.then(function(db){
+      if(!db) return;
+      try{
+        var tx = db.transaction(STORE,'readwrite');
+        tx.objectStore(STORE).put(theme, KEY);
+      }catch(err){}
+    }).then(function(){
+      if(bc) bc.postMessage(theme);
+    });
+  }
+  function onChange(cb){
+    if(bc) bc.onmessage = function(e){ cb(e.data); };
+  }
+  window.ThemeDB = { getTheme: getTheme, setTheme: setTheme, onChange: onChange };
+  window.__themeApplied = getTheme().then(function(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    return theme;
+  });
+  setTimeout(function(){ document.documentElement.style.visibility = 'visible'; }, 400);
+})();
+</script>
+
    <link rel="manifest" href="manifest.json">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VISION</title>
@@ -660,17 +710,29 @@ function initVanta(opts){
   });
 }
 
-function toggleTheme(){
-  isDark = !isDark;
-  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+function applyTheme(theme){
+  isDark = theme === 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  var icon = document.getElementById('themeIcon');
+  if(icon) icon.textContent = isDark ? '☀️' : '🌙';
   initVanta(isDark ? DARK_VANTA : LIGHT_VANTA);
+  document.documentElement.style.visibility = 'visible';
   // Redraw chart with new bg
   if(lastInv !== null) drawMilestoneChart(state.miv, state.ar, state.ip);
 }
 
+function toggleTheme(){
+  var next = isDark ? 'light' : 'dark';
+  applyTheme(next);
+  ThemeDB.setTheme(next);
+}
+
+ThemeDB.onChange(function(theme){
+  if((theme === 'dark') !== isDark) applyTheme(theme);
+});
+
 window.addEventListener('DOMContentLoaded', () => {
-  initVanta(DARK_VANTA);
+  window.__themeApplied.then(applyTheme);
 });
 
 /* ────────────── STATE ────────────── */
