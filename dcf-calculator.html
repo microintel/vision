@@ -284,6 +284,26 @@ main {
   .assume-banner { margin: 12px 32px 0; }
 }
 
+/* ── LARGE DESKTOP: stretch the layout to use the extra width ── */
+@media (min-width: 1400px) {
+  main {
+    max-width: 1680px;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 32px;
+    padding: 28px 56px 72px;
+  }
+  header { padding: 28px 56px 0; }
+  .hero-quote { margin: 22px 56px 0; }
+  .assume-banner { margin: 12px 56px 0; }
+  .card { padding: 26px 26px; }
+  .line-chart-wrap { height: 280px; }
+  table { min-width: 100%; }
+}
+
+@media (min-width: 1800px) {
+  main { max-width: 1920px; }
+}
+
 /* ── CARD ── */
 .card {
   background: var(--card-solid);
@@ -869,7 +889,7 @@ input[type="range"]::-webkit-slider-thumb { transition: none; }
     <div class="card">
       <div class="card-title">Worked Example — <span class="mi-name">Microintel Pvt Ltd</span></div>
       <div class="formula-legend" style="margin-top:0;">
-        <div><span>Say</span> Microintel is a mid-cap IT services company you're evaluating. Here's what you'd plug in and why:</div>
+        <div><span>Say &nbsp;&nbsp;</span>  Microintel is a mid-cap IT services company you're evaluating. Here's what you'd plug in and why:</div>
       </div>
       <div class="table-wrap" style="margin-top:14px;">
         <table>
@@ -899,6 +919,18 @@ input[type="range"]::-webkit-slider-thumb { transition: none; }
         <div class="bb-label">Verdict for Microintel</div>
         <div class="bb-value" style="color:var(--red);">₹506 vs ₹950</div>
         <div class="bb-sub">Intrinsic value (₹506) is ~47% below the current price (₹950) — on these assumptions the model says it's <b>overvalued</b>. With a 25% margin of safety you'd only consider buying below ≈ ₹380. Change the growth or discount rate assumptions above and the answer can flip — that's the point of stress-testing a DCF rather than trusting one number.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:var(--gold);">Before You Act on This Number</div>
+      <div class="formula-legend" style="margin-top:0;">
+        <div><span>!</span> A DCF output is only as good as the growth, discount-rate, and terminal-value assumptions you typed in — small changes to any of them can flip "undervalued" into "overvalued," as the worked example above shows.</div>
+        <div><span>!</span> The intrinsic value here ignores qualitative factors that move real prices: management quality, competitive moat, industry cycles, regulatory risk, and — yes — market sentiment and narrative. Markets can stay "irrational" longer than a spreadsheet expects.</div>
+        <div><span>!</span> Treat this as one input for building conviction, not a buy/sell signal on its own. Pair it with a look at the business fundamentals, sector trends, and how the market is actually pricing the stock before deciding anything.</div>
+      </div>
+      <div class="formula-legend" style="margin-top:10px;">
+        <div style="font-size:11px;color:var(--muted);"><b style="color:var(--text)">This tool is for educational purposes only</b> and is not investment advice. It doesn't account for taxes, transaction costs, or your personal financial situation — always do your own research (or consult a qualified advisor) before investing.</div>
       </div>
     </div>
 

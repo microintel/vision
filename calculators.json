@@ -67,6 +67,6 @@
     "file": "dcf-calculator.html",
     "accent": "violet",
     "formula": "EV = Σ FCFₜ / (1+r)ᵗ + TV / (1+r)ⁿ",
-    "icon": "layers"
+    "icon": "cash"
   }
 ]
