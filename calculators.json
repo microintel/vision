@@ -58,5 +58,15 @@
     "accent": "gold",
     "formula": "FD: A = P(1+r/100)ⁿ  ·  RD/SIP: FV = P×[(1+r)ⁿ−1]×(1+r)/r",
     "icon": "scale"
+  },
+  {
+    "id": "dcf",
+    "name": "DCF Calculator",
+    "tagline": "Find a stock's true intrinsic value",
+    "description": "Estimate a company's intrinsic value per share by discounting projected free cash flows and terminal value back to today, then compare it against the current market price with a margin of safety.",
+    "file": "dcf-calculator.html",
+    "accent": "violet",
+    "formula": "EV = Σ FCFₜ / (1+r)ᵗ + TV / (1+r)ⁿ",
+    "icon": "layers"
   }
 ]

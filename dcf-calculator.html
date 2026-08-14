@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<script>
+/* ── Theme persistence (IndexedDB) — keeps theme in sync across all Vision pages ── */
+(function(){
+  document.documentElement.style.visibility = 'hidden';
+  var DB_NAME = 'VisionAppDB', STORE = 'settings', KEY = 'theme';
+  var bc = ('BroadcastChannel' in window) ? new BroadcastChannel('vision-theme') : null;
+  var dbPromise = new Promise(function(resolve){
+    try{
+      var req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = function(e){ e.target.result.createObjectStore(STORE); };
+      req.onsuccess = function(e){ resolve(e.target.result); };
+      req.onerror = function(){ resolve(null); };
+    }catch(err){ resolve(null); }
+  });
+  function getTheme(){
+    return dbPromise.then(function(db){
+      return new Promise(function(resolve){
+        if(!db) return resolve('dark');
+        try{
+          var tx = db.transaction(STORE,'readonly');
+          var rq = tx.objectStore(STORE).get(KEY);
+          rq.onsuccess = function(){ resolve(rq.result || 'dark'); };
+          rq.onerror = function(){ resolve('dark'); };
+        }catch(err){ resolve('dark'); }
+      });
+    });
+  }
+  function setTheme(theme){
+    return dbPromise.then(function(db){
+      if(!db) return;
+      try{
+        var tx = db.transaction(STORE,'readwrite');
+        tx.objectStore(STORE).put(theme, KEY);
+      }catch(err){}
+    }).then(function(){
+      if(bc) bc.postMessage(theme);
+    });
+  }
+  function onChange(cb){
+    if(bc) bc.onmessage = function(e){ cb(e.data); };
+  }
+  window.ThemeDB = { getTheme: getTheme, setTheme: setTheme, onChange: onChange };
+  window.__themeApplied = getTheme().then(function(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    return theme;
+  });
+  setTimeout(function(){ document.documentElement.style.visibility = 'visible'; }, 400);
+})();
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VISION</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- three.js + vanta dots -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.dots.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+/* ────────────────────────────────────────────
+   THEME TOKENS
+──────────────────────────────────────────── */
+:root {
+  --violet:    #7C3AED;
+  --violet-l:  #A78BFA;
+  --gold:      #F59E0B;
+  --gold-l:    #FCD34D;
+  --green:     #10B981;
+  --red:       #EF4444;
+  --radius:    16px;
+  --radius-sm: 10px;
+  --transition: 0.35s cubic-bezier(.4,0,.2,1);
+}
+
+/* DARK */
+[data-theme="dark"] {
+  --bg:      #08091280;
+  --vanta-bg:#080912;
+  --surface: #12141F;
+  --card:    rgba(18,20,31,0.82);
+  --border:  #252840;
+  --text:    #F1F5F9;
+  --muted:   #94A3B8;
+  --dim:     #475569;
+  --input-bg:#0e101a;
+  --logo-from:#ffffff;
+  --toggle-icon: '☀️';
+  --vanta-color: 0x7C3AED;
+  --vanta-color2: 0x7C3AED;
+  --vanta-bg-hex: 0x080912;
+  --card-solid: #14161F;
+  --nm-dark:  rgba(0,0,0,0.5);
+  --nm-light: rgba(255,255,255,0.035);
+}
+
+/* LIGHT */
+[data-theme="light"] {
+  --bg:      rgba(240,242,255,0.7);
+  --vanta-bg:#e8eaf8;
+  --surface: #f0f2ff;
+  --card:    rgba(255,255,255,0.88);
+  --border:  #dde0f5;
+  --text:    #1E1B4B;
+  --muted:   #6B7280;
+  --dim:     #9CA3AF;
+  --input-bg:#f5f6ff;
+  --logo-from:#1E1B4B;
+  --toggle-icon: '🌙';
+  --vanta-color: 0x7C3AED;
+  --vanta-color2: 0x7C3AED;
+  --vanta-bg-hex: 0xe8eaf8;
+  --card-solid: #eef0fb;
+  --nm-dark:  rgba(30,27,75,0.16);
+  --nm-light: rgba(255,255,255,0.9);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+/* ── VANTA CANVAS ── */
+#vanta-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  transition: background var(--transition);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: transparent;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: color var(--transition);
+}
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  z-index: 20;
+  padding: 20px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 6px;
+  background: linear-gradient(135deg, var(--logo-from) 30%, var(--violet-l));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: background var(--transition);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.badge {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── THEME TOGGLE ── */
+.theme-toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: transform 0.3s, border-color 0.3s, background var(--transition);
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 0;
+}
+.theme-toggle:hover { transform: rotate(20deg) scale(1.1); border-color: var(--violet); }
+
+/* ── HERO QUOTE ── */
+.hero-quote {
+  position: relative;
+  z-index: 10;
+  margin: 22px 20px 0;
+  background: var(--card-solid);
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  box-shadow:
+    6px 6px 14px var(--nm-dark),
+    -5px -5px 12px var(--nm-light);
+  transition: box-shadow 0.3s ease;
+}
+.hero-quote::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--violet);
+  border-radius: 3px 0 0 3px;
+}
+.quote-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--violet);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.quote-author {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600; font-size: 12px;
+  color: var(--gold); margin-bottom: 3px;
+}
+.quote-body {
+  font-size: 11px; color: var(--muted);
+  line-height: 1.6; font-style: italic;
+}
+
+/* ── ASSUME COMPANY BANNER ── */
+.assume-banner {
+  position: relative;
+  z-index: 10;
+  margin: 12px 20px 0;
+  background: var(--card-solid);
+  border: none;
+  border-radius: var(--radius);
+  padding: 12px 18px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+  box-shadow:
+    6px 6px 14px var(--nm-dark),
+    -5px -5px 12px var(--nm-light);
+}
+
+/* ── MAIN LAYOUT ── */
+main {
+  position: relative;
+  z-index: 10;
+  padding: 16px 16px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (min-width: 900px) {
+  main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    padding: 20px 32px 60px;
+    align-items: start;
+  }
+  header { padding: 24px 40px 0; }
+  .hero-quote { margin: 22px 32px 0; }
+  .assume-banner { margin: 12px 32px 0; }
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--card-solid);
+  border: none;
+  border-radius: var(--radius);
+  padding: 22px 18px;
+  margin-bottom: 14px;
+  box-shadow:
+    7px 7px 16px var(--nm-dark),
+    -6px -6px 14px var(--nm-light);
+  transition: box-shadow 0.3s ease;
+}
+.card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 18px;
+}
+
+/* ── SLIDERS ── */
+.input-row { margin-bottom: 26px; }
+.input-row:last-child { margin-bottom: 0; }
+
+.input-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.input-label span:first-child {
+  font-size: 13px; font-weight: 500; color: var(--text);
+}
+.input-label span:last-child {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 17px; font-weight: 700;
+  color: var(--violet-l);
+  min-width: 80px; text-align: right;
+}
+
+/* ── INFO TOOLTIP ── */
+.label-left { display:flex; align-items:center; gap:6px; }
+.info-icon {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--dim);
+  color: var(--dim);
+  background: transparent;
+  font-size: 10px; font-weight: 700;
+  line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: border-color 0.2s, color 0.2s;
+}
+.info-icon:hover, .info-icon.open { border-color: var(--violet); color: var(--violet-l); }
+.tip-box {
+  display: none;
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.tip-box.open { display: block; animation: slideDown 0.2s ease; }
+.tip-box b { color: var(--text); }
+
+/* ── MICROINTEL NAME EMPHASIS ── */
+.mi-name {
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  color: var(--text);
+}
+
+.slider-wrap { display: flex; align-items: center; gap: 10px; }
+
+input[type="range"] {
+  -webkit-appearance: none;
+  flex: 1; height: 4px;
+  background: var(--border);
+  border-radius: 4px;
+  outline: none; cursor: pointer;
+  transition: background var(--transition);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--violet);
+  border: 2px solid #fff;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+input[type="range"]::-webkit-slider-thumb:active {
+  box-shadow: 0 0 0 8px rgba(124,58,237,0.2);
+}
+
+input[type="number"] {
+  width: 84px; height: 36px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 600;
+  text-align: center; outline: none;
+  transition: border-color 0.2s, background var(--transition), color var(--transition);
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type="number"]:focus { border-color: var(--violet); }
+input[type="number"].invalid { border-color: var(--red); background: rgba(239,68,68,0.08); }
+
+/* ── ERROR ── */
+.error-banner {
+  display: none;
+  background: rgba(239,68,68,0.12);
+  border: 1px solid var(--red);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 12px; color: #FCA5A5;
+  margin-bottom: 14px;
+  animation: slideDown 0.3s ease;
+}
+@keyframes slideDown {
+  from { opacity:0; transform:translateY(-6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── WEALTH METER ARC ── */
+.wealth-meter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 20px 0 12px;
+}
+.arc-container {
+  position: relative;
+  width: 200px; height: 110px;
+}
+.arc-container svg { width: 200px; height: 110px; overflow: visible; }
+.arc-bg      { stroke: var(--border); fill: none; stroke-width: 12; stroke-linecap: round; transition: stroke var(--transition); }
+.arc-invest  { fill: none; stroke-width: 12; stroke-linecap: round; stroke: var(--violet);
+               transition: stroke-dasharray 0.8s cubic-bezier(.4,0,.2,1), stroke-dashoffset 0.8s cubic-bezier(.4,0,.2,1); }
+.arc-earn    { fill: none; stroke-width: 12; stroke-linecap: round; stroke: var(--gold);
+               transition: stroke-dasharray 0.8s cubic-bezier(.4,0,.2,1), stroke-dashoffset 0.8s cubic-bezier(.4,0,.2,1); }
+
+.arc-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -10%);
+  text-align: center;
+}
+.arc-total {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px; font-weight: 700;
+  color: var(--text); line-height: 1;
+}
+.arc-label {
+  font-size: 10px; color: var(--dim);
+  margin-top: 2px; letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ── RESULT PILLS ── */
+.result-pills {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px; margin-top: 18px;
+}
+.pill {
+  background: var(--card-solid);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px 8px; text-align: center;
+  box-shadow:
+    inset 3px 3px 7px var(--nm-dark),
+    inset -3px -3px 7px var(--nm-light);
+  transition: box-shadow 0.3s ease;
+}
+.pill-label {
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 5px;
+}
+.pill-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 700; line-height: 1.2;
+}
+.pill-value .unit { font-size: 10px; font-weight: 500; color: var(--dim); }
+.pill-invest .pill-value { color: var(--violet-l); }
+.pill-earn   .pill-value { color: var(--gold); }
+.pill-total  .pill-value { color: var(--green); }
+.pill-total.negative .pill-value { color: var(--red); }
+
+/* ── BUY BELOW BANNER ── */
+.buy-banner {
+  margin-top: 14px;
+  background: var(--card-solid);
+  border-radius: var(--radius-sm);
+  padding: 14px 12px;
+  text-align: center;
+  box-shadow:
+    inset 3px 3px 8px var(--nm-dark),
+    inset -3px -3px 8px var(--nm-light);
+}
+.buy-banner .bb-label {
+  font-size: 9px; font-weight: 600; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--dim); margin-bottom: 6px;
+}
+.buy-banner .bb-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px; font-weight: 700; color: var(--green);
+}
+.buy-banner .bb-sub { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+/* ── FUTURE TABLE ── */
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+.section-title { font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; color:var(--text); }
+.section-sub   { font-size:11px; color:var(--dim); }
+.table-wrap    { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+table { width:100%; min-width:420px; border-collapse:collapse; }
+
+thead th {
+  font-size:10px; font-weight:600;
+  letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--dim); padding:8px 10px;
+  text-align:left; border-bottom:1px solid var(--border);
+}
+tbody tr { transition: background 0.15s; }
+tbody tr:hover { background: rgba(124,58,237,0.06); }
+tbody td { padding:10px; font-size:12px; border-bottom:1px solid var(--border); color:var(--text); }
+tbody tr:last-child td { border-bottom:none; }
+tbody tr.tv-row td { background: rgba(245,158,11,0.06); font-weight:600; }
+
+.td-year    { font-size:11px; color:var(--dim); white-space:nowrap; }
+.td-invest  { color:var(--violet-l); font-family:'Space Grotesk',sans-serif; font-weight:600; }
+.td-earn    { color:var(--gold);     font-family:'Space Grotesk',sans-serif; font-weight:600; }
+.td-total   { color:var(--green);    font-family:'Space Grotesk',sans-serif; font-weight:700; }
+
+.grow-bar-wrap { display:flex; align-items:center; gap:6px; }
+.grow-bar {
+  height:4px; background:var(--border);
+  border-radius:4px; flex:1; overflow:hidden;
+}
+.grow-bar-fill {
+  height:100%; border-radius:4px;
+  background: var(--green);
+  transition: width 0.6s ease;
+}
+
+/* ── FORMULA ── */
+.formula-box {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 17px; font-weight: 700;
+  text-align: center;
+  color: var(--text);
+  background: var(--card-solid);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 18px 12px;
+  letter-spacing: 0.5px;
+  box-shadow:
+    inset 3px 3px 8px var(--nm-dark),
+    inset -3px -3px 8px var(--nm-light);
+}
+.formula-box sup { color: var(--gold); font-size: 12px; }
+.formula-box sub { color: var(--violet-l); font-size: 11px; }
+.formula-legend {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+}
+.formula-legend div {
+  font-size: 12px; color: var(--muted);
+  display: flex; gap: 8px; align-items: baseline;
+}
+.formula-legend span {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700; color: var(--violet-l);
+  min-width: 14px;
+}
+
+/* ── LINE CHART ── */
+.line-chart-wrap {
+  margin-top: 18px;
+  position: relative;
+  height: 220px;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align:center; padding:36px 20px; color:var(--dim); }
+.empty-state svg { opacity:0.3; margin-bottom:10px; }
+.empty-state p { font-size:13px; }
+
+/* ── MOBILE RESULTS ── */
+.results-panel { display:none; }
+.results-panel.active { display:block; }
+
+/* ── FOOTER ── */
+footer {
+  position:relative; z-index:10;
+  text-align:center; padding:0 20px 28px;
+  font-size:11px; color:var(--dim); letter-spacing:1px;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* ── DESKTOP ── */
+@media (min-width:900px) {
+  .left-col  { grid-column:1; }
+  .right-col { grid-column:2; }
+  .results-panel { display:block !important; }
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade-up { animation: fadeUp 0.5s ease both; }
+
+/* ── THEME TRANSITION ── */
+*, *::before, *::after {
+  transition: background-color var(--transition),
+              border-color var(--transition),
+              color var(--transition);
+}
+input[type="range"],
+input[type="range"]::-webkit-slider-thumb { transition: none; }
+</style>
+</head>
+<body>
+
+<!-- VANTA BACKGROUND -->
+<div id="vanta-bg"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">VISION</div>
+  <div class="header-right">
+    <div class="badge">DCF Calculator</div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle dark/light theme">
+      <span id="themeIcon">☀️</span>
+    </button>
+  </div>
+</header>
+
+<!-- QUOTE -->
+<div class="hero-quote">
+  <img class="quote-avatar"
+       src="https://raw.githubusercontent.com/microintel/endgram/main/photo/warren.png"
+       alt="Warren Buffett" onerror="this.style.display='none'">
+  <div>
+    <div class="quote-author">Warren Buffett</div>
+    <div class="quote-body">"Price is what you pay. Value is what you get."</div>
+  </div>
+</div>
+
+<!-- ASSUME COMPANY -->
+<div class="assume-banner">
+  Assume you're evaluating <span class="mi-name">Microintel Pvt Ltd</span> — a mid-cap IT services company. The fields below are pre-loaded with its numbers.
+</div>
+
+<!-- MAIN -->
+<main>
+
+  <!-- LEFT: INPUTS -->
+  <div class="left-col">
+
+    <div id="errBanner" class="error-banner"></div>
+
+    <div class="card">
+      <div class="card-title">Cash Flow Assumptions</div>
+
+      <!-- Initial FCF -->
+      <div class="input-row">
+        <div class="input-label">
+          <span class="label-left">Initial FCF (Rs Cr) <button type="button" class="info-icon" onclick="toggleTip('tip-fcf',this)">?</button></span>
+          <span id="disp-fcf">₹1,000</span>
+        </div>
+        <div id="tip-fcf" class="tip-box"><b>What:</b> The company's most recent full-year Free Cash Flow (Cash from Operations − Capital Expenditure), in ₹ Crores. This is the starting cash flow the model grows every year.<br><br><b>Where to find it:</b> The "Cash Flow Statement" in the annual report, or the "Cash Flow" tab on <b>screener.in</b> / moneycontrol.com — subtract Capex from Operating Cash Flow for the latest year.</div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-fcf" min="0" max="1000000" step="10" value="1000" oninput="syncFcf(this.value)">
+          <input type="number" id="in-fcf" min="0" max="100000000" value="1000" oninput="syncFcfNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Discount Rate -->
+      <div class="input-row">
+        <div class="input-label">
+          <span class="label-left">Discount Rate <button type="button" class="info-icon" onclick="toggleTip('tip-dr',this)">?</button></span>
+          <span id="disp-dr">12%</span>
+        </div>
+        <div id="tip-dr" class="tip-box"><b>What:</b> Your required rate of return / WACC — the annual return you demand for the risk of holding this stock. Future cash flows are "discounted" back at this rate.<br><br><b>Where to find it:</b> Not published — you estimate it. A common rule of thumb for India: <b>10–14%</b> for large, stable companies; <b>15–20%+</b> for smaller or riskier ones. Some investors just use their own personal target return.</div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-dr" min="1" max="30" step="0.5" value="12" oninput="syncDr(this.value)">
+          <input type="number" id="in-dr" min="0" max="70" value="12" oninput="syncDrNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Growth Rate 1-5 -->
+      <div class="input-row">
+        <div class="input-label">
+          <span class="label-left">Growth Rate (1 to 5 Yr) <button type="button" class="info-icon" onclick="toggleTip('tip-g1',this)">?</button></span>
+          <span id="disp-g1">15%</span>
+        </div>
+        <div id="tip-g1" class="tip-box"><b>What:</b> Expected annual % growth in FCF for the first 5 years — usually the company's higher-growth phase.<br><br><b>Where to find it:</b> Look at the company's historical 3–5 year FCF/profit growth (screener.in shows "Compounded Profit Growth"), analyst estimates in research reports, or management's own growth guidance in earnings calls/investor presentations.</div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-g1" min="-20" max="50" step="0.5" value="15" oninput="syncG1(this.value)">
+          <input type="number" id="in-g1" min="-50" max="100" value="15" oninput="syncG1Num(this.value)">
+        </div>
+      </div>
+
+      <!-- Growth Rate 6-10 -->
+      <div class="input-row">
+        <div class="input-label">
+          <span class="label-left">Growth Rate (6 to 10 Yr) <button type="button" class="info-icon" onclick="toggleTip('tip-g2',this)">?</button></span>
+          <span id="disp-g2">10%</span>
+        </div>
+        <div id="tip-g2" class="tip-box"><b>What:</b> Expected annual % FCF growth in years 6–10, as growth naturally slows down when the company matures. Should usually be lower than Growth Rate (1–5 Yr).<br><br><b>Where to find it:</b> There's no direct source — a common approach is to fade it roughly halfway between your Yr 1-5 growth and the Terminal Growth Rate below.</div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-g2" min="-20" max="40" step="0.5" value="10" oninput="syncG2(this.value)">
+          <input type="number" id="in-g2" min="-50" max="100" value="10" oninput="syncG2Num(this.value)">
+        </div>
+      </div>
+
+      <!-- Terminal Rate -->
+      <div class="input-row">
+        <div class="input-label">
+          <span class="label-left">Terminal Growth Rate <button type="button" class="info-icon" onclick="toggleTip('tip-tr',this)">?</button></span>
+          <span id="disp-tr">5%</span>
+        </div>
+        <div id="tip-tr" class="tip-box"><b>What:</b> The FCF growth rate assumed forever after year 10. No company can outgrow the economy forever, so this must stay modest — and always lower than the Discount Rate.<br><br><b>Where to find it:</b> No source to look up — use a conservative estimate close to long-run <b>nominal GDP growth (~4–6% for India)</b> or long-term inflation. Avoid guessing anything above ~6-7%.</div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-tr" min="0" max="10" step="0.1" value="5" oninput="syncTr(this.value)">
+          <input type="number" id="in-tr" min="0" max="70" value="5" oninput="syncTrNum(this.value)">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Company &amp; Valuation Inputs</div>
+
+      <!-- Market Cap -->
+      <div class="input-row">
+        <div class="input-label">
+          <span class="label-left">Market Capitalization (Rs Cr) <button type="button" class="info-icon" onclick="toggleTip('tip-mc',this)">?</button></span>
+          <span id="disp-mc">₹50,000</span>
+        </div>
+        <div id="tip-mc" class="tip-box"><b>What:</b> The company's total current market value = Share Price × Total Shares Outstanding, in ₹ Crores. Used here to back out the number of shares.<br><br><b>Where to find it:</b> Shown directly on the stock's page on <b>screener.in</b>, moneycontrol.com, NSE/BSE websites, or Google Finance — usually labeled "Market Cap".</div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-mc" min="0" max="1000000" step="100" value="50000" oninput="syncMc(this.value)">
+          <input type="number" id="in-mc" min="0" max="100000000" value="50000" oninput="syncMcNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Share Price -->
+      <div class="input-row">
+        <div class="input-label">
+          <span class="label-left">Current Share Price (Rs) <button type="button" class="info-icon" onclick="toggleTip('tip-sp',this)">?</button></span>
+          <span id="disp-sp">₹500</span>
+        </div>
+        <div id="tip-sp" class="tip-box"><b>What:</b> Today's trading price of one share of the company, used to compare against the model's intrinsic value estimate.<br><br><b>Where to find it:</b> Live on NSE/BSE, your broker app (Zerodha, Groww, etc.), Google Finance, or screener.in — labeled "Current Price" / "CMP".</div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-sp" min="1" max="20000" step="1" value="500" oninput="syncSp(this.value)">
+          <input type="number" id="in-sp" min="0" max="1000000" value="500" oninput="syncSpNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Net Debt -->
+      <div class="input-row">
+        <div class="input-label">
+          <span class="label-left">Net Debt (Rs Cr) <button type="button" class="info-icon" onclick="toggleTip('tip-nd',this)">?</button></span>
+          <span id="disp-nd">₹5,000</span>
+        </div>
+        <div id="tip-nd" class="tip-box"><b>What:</b> Total Debt − Cash &amp; Cash Equivalents, in ₹ Crores. Subtracted from Enterprise Value to get Equity Value. Enter a <b>negative</b> number if the company holds more cash than debt (net cash).<br><br><b>Where to find it:</b> The "Balance Sheet" section on screener.in / moneycontrol.com, or the annual report — sum up all borrowings, then subtract cash & investments.</div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-nd" min="-50000" max="100000" step="100" value="5000" oninput="syncNd(this.value)">
+          <input type="number" id="in-nd" min="-1000000" max="10000000" value="5000" oninput="syncNdNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Margin of Safety -->
+      <div class="input-row">
+        <div class="input-label">
+          <span class="label-left">Margin of Safety <button type="button" class="info-icon" onclick="toggleTip('tip-mos',this)">?</button></span>
+          <span id="disp-mos">20%</span>
+        </div>
+        <div id="tip-mos" class="tip-box"><b>What:</b> The discount you want below the calculated intrinsic value before you'd actually buy — a cushion against errors in your growth/rate assumptions.<br><br><b>Where to find it:</b> A personal choice, not a market figure. Value investors commonly use <b>20–30%</b>; use more (30%+) for uncertain businesses, less (10-15%) for very stable, predictable ones.</div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-mos" min="0" max="50" step="1" value="20" oninput="syncMos(this.value)">
+          <input type="number" id="in-mos" min="0" max="90" value="20" oninput="syncMosNum(this.value)">
+        </div>
+      </div>
+    </div>
+
+    <!-- MOBILE RESULTS -->
+    <div id="mobileResults" class="results-panel card">
+      <div class="card-title">Your Results</div>
+
+      <div id="emptyState" class="empty-state">
+        <svg width="38" height="38" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-width="1.5" d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 6v4m0 4h.01"/>
+        </svg>
+        <p>Adjust the sliders above to see your valuation.</p>
+      </div>
+
+      <div id="resultsContent" style="display:none">
+        <div class="wealth-meter">
+          <div class="arc-container">
+            <svg viewBox="-10 -10 220 130">
+              <path class="arc-bg" d="M 10 100 A 90 90 0 0 1 190 100"/>
+              <path id="arcInvest" class="arc-invest" d="M 10 100 A 90 90 0 0 1 190 100" stroke-dasharray="283" stroke-dashoffset="283"/>
+              <path id="arcEarn"   class="arc-earn"   d="M 10 100 A 90 90 0 0 1 190 100" stroke-dasharray="283" stroke-dashoffset="283"/>
+            </svg>
+            <div class="arc-center">
+              <div class="arc-total" id="arcTotal">—</div>
+              <div class="arc-label">Enterprise Value</div>
+            </div>
+          </div>
+        </div>
+        <div class="result-pills">
+          <div class="pill pill-invest"><div class="pill-label">Intrinsic Val/Sh</div><div class="pill-value" id="res-iv">—</div></div>
+          <div class="pill pill-earn">  <div class="pill-label">Current Price</div>  <div class="pill-value" id="res-cp">—</div></div>
+          <div class="pill pill-total" id="pillUpside"> <div class="pill-label">Upside</div>   <div class="pill-value" id="res-up">—</div></div>
+        </div>
+        <div class="buy-banner">
+          <div class="bb-label">Buy Below (w/ Margin of Safety)</div>
+          <div class="bb-value" id="res-bb">—</div>
+          <div class="bb-sub" id="res-bb-sub">—</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <!-- RIGHT -->
+  <div class="right-col">
+
+    <div class="card" id="futureCard" style="display:none">
+      <div class="section-header">
+        <div class="section-title">10-Year Cash Flow Projection</div>
+        <div class="section-sub" id="futureNote"></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Year</th><th>Growth</th><th>FCF</th><th>PV of FCF</th></tr></thead>
+          <tbody id="futureBody"></tbody>
+        </table>
+      </div>
+      <div class="line-chart-wrap">
+        <canvas id="milestoneChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">The Formula</div>
+      <div class="formula-box">EV = Σ FCF<sub>t</sub> / (1+r)<sup>t</sup> + TV / (1+r)<sup>n</sup></div>
+      <div class="formula-legend">
+        <div><span>EV</span> Enterprise Value (intrinsic firm value)</div>
+        <div><span>FCF</span> Free Cash Flow projected each year</div>
+        <div><span>r</span> Discount rate (required return)</div>
+        <div><span>TV</span> Terminal Value = FCF₁₀×(1+g) / (r−g)</div>
+        <div><span>n</span> Number of projection years (10)</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Worked Example — <span class="mi-name">Microintel Pvt Ltd</span></div>
+      <div class="formula-legend" style="margin-top:0;">
+        <div><span>Say</span> Microintel is a mid-cap IT services company you're evaluating. Here's what you'd plug in and why:</div>
+      </div>
+      <div class="table-wrap" style="margin-top:14px;">
+        <table>
+          <thead><tr><th>Input</th><th>Value</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td class="td-year">Initial FCF</td><td class="td-total">₹800 Cr</td><td style="font-size:11px;color:var(--muted)">Last year's Op. Cash Flow − Capex, from the cash flow statement</td></tr>
+            <tr><td class="td-year">Discount Rate</td><td class="td-total">13%</td><td style="font-size:11px;color:var(--muted)">Mid-cap, moderate risk → slightly above the large-cap 10-12% norm</td></tr>
+            <tr><td class="td-year">Growth (Yr 1-5)</td><td class="td-total">18%</td><td style="font-size:11px;color:var(--muted)">In line with its 5-yr historical profit CAGR on screener.in</td></tr>
+            <tr><td class="td-year">Growth (Yr 6-10)</td><td class="td-total">8%</td><td style="font-size:11px;color:var(--muted)">Growth cools as the IT sector matures</td></tr>
+            <tr><td class="td-year">Terminal Growth</td><td class="td-total">5%</td><td style="font-size:11px;color:var(--muted)">Roughly India's long-run nominal GDP growth</td></tr>
+            <tr><td class="td-year">Market Cap</td><td class="td-total">₹40,000 Cr</td><td style="font-size:11px;color:var(--muted)">Straight off the screener.in stock page</td></tr>
+            <tr><td class="td-year">Share Price</td><td class="td-total">₹950</td><td style="font-size:11px;color:var(--muted)">Today's live trading price</td></tr>
+            <tr><td class="td-year">Net Debt</td><td class="td-total">−₹2,000 Cr</td><td style="font-size:11px;color:var(--muted)">Negative = it's net cash-rich (cash &gt; debt) per the balance sheet</td></tr>
+            <tr><td class="td-year">Margin of Safety</td><td class="td-total">25%</td><td style="font-size:11px;color:var(--muted)">A comfortable cushion for a business this size</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="formula-legend" style="margin-top:16px;">
+        <div><span>1</span> FCF is grown 18%/yr for years 1-5, then 8%/yr for years 6-10, each year's FCF discounted back at 13% → PV of 10-yr cash flows ≈ <b style="color:var(--text)">₹8,908 Cr</b>.</div>
+        <div><span>2</span> Terminal Value (from Yr 10 FCF, growing 5% forever) ≈ ₹35,295 Cr, discounted back to today ≈ <b style="color:var(--text)">₹10,398 Cr</b>.</div>
+        <div><span>3</span> Enterprise Value = ₹8,908 Cr + ₹10,398 Cr ≈ <b style="color:var(--text)">₹19,306 Cr</b>.</div>
+        <div><span>4</span> Equity Value = EV − Net Debt = ₹19,306 Cr − (−₹2,000 Cr) ≈ <b style="color:var(--text)">₹21,306 Cr</b>.</div>
+        <div><span>5</span> Shares outstanding = Market Cap ÷ Price = ₹40,000 Cr ÷ ₹950 ≈ 42.1 Cr shares.</div>
+        <div><span>6</span> Intrinsic value/share = ₹21,306 Cr ÷ 42.1 Cr ≈ <b style="color:var(--text)">₹506</b>.</div>
+      </div>
+      <div class="buy-banner" style="margin-top:14px;">
+        <div class="bb-label">Verdict for Microintel</div>
+        <div class="bb-value" style="color:var(--red);">₹506 vs ₹950</div>
+        <div class="bb-sub">Intrinsic value (₹506) is ~47% below the current price (₹950) — on these assumptions the model says it's <b>overvalued</b>. With a 25% margin of safety you'd only consider buying below ≈ ₹380. Change the growth or discount rate assumptions above and the answer can flip — that's the point of stress-testing a DCF rather than trusting one number.</div>
+      </div>
+    </div>
+
+  </div><!-- /right -->
+</main>
+
+<footer>VISION &nbsp;·&nbsp; Your wealth, visualised</footer>
+
+<script>
+/* ────────────── THEME ────────────── */
+const DARK_VANTA  = { backgroundColor:0x080912, color:0x7C3AED, color2:0x7C3AED };
+const LIGHT_VANTA = { backgroundColor:0xe8eaf8, color:0x7C3AED, color2:0x7C3AED };
+
+let isDark = true;
+let vantaEffect = null;
+
+function initVanta(opts){
+  if(vantaEffect) vantaEffect.destroy();
+  vantaEffect = VANTA.DOTS({
+    el: '#vanta-bg',
+    THREE: THREE,
+    mouseControls: true,
+    touchControls: true,
+    gyroControls: false,
+    minHeight: 200,
+    minWidth: 200,
+    scale: 1.0,
+    scaleMobile: 1.0,
+    backgroundColor: opts.backgroundColor,
+    color: opts.color,
+    color2: opts.color2,
+    size: 2.5,
+    spacing: 30,
+    showLines: false
+  });
+}
+
+function applyTheme(theme){
+  isDark = theme === 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  var icon = document.getElementById('themeIcon');
+  if(icon) icon.textContent = isDark ? '☀️' : '🌙';
+  initVanta(isDark ? DARK_VANTA : LIGHT_VANTA);
+  document.documentElement.style.visibility = 'visible';
+  if(lastComputed) drawMilestoneChart(lastComputed.rows);
+}
+
+function toggleTheme(){
+  var next = isDark ? 'light' : 'dark';
+  applyTheme(next);
+  ThemeDB.setTheme(next);
+}
+
+ThemeDB.onChange(function(theme){
+  if((theme === 'dark') !== isDark) applyTheme(theme);
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  window.__themeApplied.then(applyTheme);
+});
+
+/* ────────────── TOOLTIPS (SweetAlert2) ────────────── */
+function toggleTip(id, btn){
+  const box = document.getElementById(id);
+  if(!box) return;
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  Swal.fire({
+    icon: 'info',
+    html: box.innerHTML,
+    width: 440,
+    background: isDark ? '#12141F' : '#ffffff',
+    color: isDark ? '#F1F5F9' : '#1E1B4B',
+    iconColor: '#7C3AED',
+    confirmButtonColor: '#7C3AED',
+    confirmButtonText: 'Got it 👍',
+    customClass: { popup: 'mi-swal-popup' }
+  });
+}
+
+/* ────────────── STATE ────────────── */
+let state = { fcf:1000, dr:12, g1:15, g2:10, tr:5, mc:50000, sp:500, nd:5000, mos:20 };
+let lastComputed = null;
+
+/* ────────────── SYNC ────────────── */
+function clamp(v,mn,mx){ return Math.min(Math.max(+v||0,mn),mx); }
+
+function syncFcf(v){
+  v=clamp(v,0,100000000); state.fcf=v;
+  document.getElementById('sl-fcf').value=Math.min(v,1000000);
+  document.getElementById('in-fcf').value=v;
+  document.getElementById('disp-fcf').textContent='₹'+fmt(v);
+  validate(); compute();
+}
+function syncFcfNum(v){ syncFcf(v); }
+
+function syncDr(v){
+  v=clamp(v,0,70); state.dr=v;
+  document.getElementById('sl-dr').value=Math.min(Math.max(v,1),30);
+  document.getElementById('in-dr').value=v;
+  document.getElementById('disp-dr').textContent=v+'%';
+  validate(); compute();
+}
+function syncDrNum(v){ syncDr(v); }
+
+function syncG1(v){
+  v=clamp(v,-50,100); state.g1=v;
+  document.getElementById('sl-g1').value=Math.min(Math.max(v,-20),50);
+  document.getElementById('in-g1').value=v;
+  document.getElementById('disp-g1').textContent=v+'%';
+  validate(); compute();
+}
+function syncG1Num(v){ syncG1(v); }
+
+function syncG2(v){
+  v=clamp(v,-50,100); state.g2=v;
+  document.getElementById('sl-g2').value=Math.min(Math.max(v,-20),40);
+  document.getElementById('in-g2').value=v;
+  document.getElementById('disp-g2').textContent=v+'%';
+  validate(); compute();
+}
+function syncG2Num(v){ syncG2(v); }
+
+function syncTr(v){
+  v=clamp(v,0,70); state.tr=v;
+  document.getElementById('sl-tr').value=Math.min(v,10);
+  document.getElementById('in-tr').value=v;
+  document.getElementById('disp-tr').textContent=v+'%';
+  validate(); compute();
+}
+function syncTrNum(v){ syncTr(v); }
+
+function syncMc(v){
+  v=clamp(v,0,100000000); state.mc=v;
+  document.getElementById('sl-mc').value=Math.min(v,1000000);
+  document.getElementById('in-mc').value=v;
+  document.getElementById('disp-mc').textContent='₹'+fmt(v);
+  validate(); compute();
+}
+function syncMcNum(v){ syncMc(v); }
+
+function syncSp(v){
+  v=clamp(v,0,1000000); state.sp=v;
+  document.getElementById('sl-sp').value=Math.min(Math.max(v,1),20000);
+  document.getElementById('in-sp').value=v;
+  document.getElementById('disp-sp').textContent='₹'+fmt(v);
+  validate(); compute();
+}
+function syncSpNum(v){ syncSp(v); }
+
+function syncNd(v){
+  v=clamp(v,-1000000,10000000); state.nd=v;
+  document.getElementById('sl-nd').value=Math.min(Math.max(v,-50000),100000);
+  document.getElementById('in-nd').value=v;
+  document.getElementById('disp-nd').textContent='₹'+fmt(v);
+  validate(); compute();
+}
+function syncNdNum(v){ syncNd(v); }
+
+function syncMos(v){
+  v=clamp(v,0,90); state.mos=v;
+  document.getElementById('sl-mos').value=Math.min(v,50);
+  document.getElementById('in-mos').value=v;
+  document.getElementById('disp-mos').textContent=v+'%';
+  validate(); compute();
+}
+function syncMosNum(v){ syncMos(v); }
+
+/* ────────────── VALIDATION ────────────── */
+function validate(){
+  const b=document.getElementById('errBanner');
+  let msg='';
+  if(state.fcf<0)          msg='Initial FCF cannot be negative.';
+  else if(state.sp<=0)     msg='Current share price must be greater than 0.';
+  else if(state.mc<0)      msg='Market capitalization cannot be negative.';
+  else if(state.tr>=state.dr) msg='Terminal growth rate must be lower than the discount rate.';
+  b.textContent=msg; b.style.display=msg?'block':'none';
+}
+
+/* ────────────── FORMAT ────────────── */
+function fmt(n){ return n.toLocaleString('en-IN',{maximumFractionDigits:0}); }
+
+function fmtShort(n){
+  const neg = n<0; n=Math.abs(n);
+  let s;
+  if(n>=1e12) s=(n/1e12).toFixed(1)+'T';
+  else if(n>=1e7)  s=(n/1e7).toFixed(1)+'Cr';
+  else if(n>=1e5)  s=(n/1e5).toFixed(1)+'L';
+  else if(n>=1e3)  s=(n/1e3).toFixed(1)+'K';
+  else s=n.toFixed(0);
+  return (neg?'-':'')+s;
+}
+
+function fmtPill(n){
+  const neg = n<0; const a=Math.abs(n);
+  let val, unit;
+  if(a>=1e12){ val=(a/1e12).toFixed(2); unit='T'; }
+  else if(a>=1e7){ val=(a/1e7).toFixed(2); unit='Cr'; }
+  else if(a>=1e5){ val=(a/1e5).toFixed(2); unit='L'; }
+  else if(a>=1e3){ val=(a/1e3).toFixed(1); unit='K'; }
+  else { val=a.toFixed(0); unit=''; }
+  return `<span>${neg?'-':''}${val}</span><span class="unit"> ${unit}</span>`;
+}
+
+/* ────────────── DCF CALC ────────────── */
+function calcDCF(fcf,dr,g1,g2,tr,years=10){
+  const r = dr/100;
+  let cf = fcf;
+  const rows=[];
+  let pvSum = 0;
+  for(let yr=1; yr<=years; yr++){
+    const g = (yr<=5 ? g1 : g2)/100;
+    cf = cf*(1+g);
+    const pv = cf/Math.pow(1+r, yr);
+    pvSum += pv;
+    rows.push({ yr, growth:(yr<=5?g1:g2), fcf:cf, pv });
+  }
+  const g = tr/100;
+  const safeR = r>g ? r : g+0.001;
+  const terminalValue = cf*(1+g)/(safeR-g);
+  const pvTerminal = terminalValue/Math.pow(1+r, years);
+  const enterpriseValue = pvSum + pvTerminal;
+  return { rows, pvSum, terminalValue, pvTerminal, enterpriseValue };
+}
+
+/* ────────────── ARC ────────────── */
+const ARC_LEN=283;
+
+function setArc(ids, pct){
+  const el_i = document.getElementById(ids.invest);
+  const el_e = document.getElementById(ids.earn);
+  if(!el_i||!el_e) return;
+  const iLen = ARC_LEN * pct;
+  const eLen = ARC_LEN * (1-pct);
+  el_i.style.strokeDasharray  = `${iLen} ${eLen+2}`;
+  el_i.style.strokeDashoffset = '0';
+  el_e.style.strokeDasharray  = `${eLen} ${iLen+2}`;
+  el_e.style.strokeDashoffset = `-${iLen}`;
+}
+
+/* ────────────── TABLE ────────────── */
+function buildRows(rows, maxPv){
+  const y=new Date().getFullYear();
+  let out='';
+  rows.forEach(r=>{
+    const pct = maxPv>0 ? Math.min(100,(r.pv/maxPv)*100) : 0;
+    out+=`<tr>
+      <td class="td-year">${y+r.yr} <span style="font-size:10px">[Y${r.yr}]</span></td>
+      <td class="td-invest">${r.growth}%</td>
+      <td class="td-earn">₹${fmtShort(r.fcf)}</td>
+      <td class="td-total">
+        <div class="grow-bar-wrap">
+          <span>₹${fmtShort(r.pv)}</span>
+          <div class="grow-bar"><div class="grow-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+      </td>
+    </tr>`;
+  });
+  return out;
+}
+
+/* ────────────── LINE CHART ────────────── */
+let milestoneChartInstance = null;
+
+function drawMilestoneChart(rows){
+  const y = new Date().getFullYear();
+  const labels = rows.map(r=>y+r.yr);
+  const fcfData = rows.map(r=>Math.round(r.fcf));
+  const pvData  = rows.map(r=>Math.round(r.pv));
+
+  const isDarkMode = document.documentElement.getAttribute('data-theme')==='dark';
+  const gridColor  = isDarkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+  const tickColor  = isDarkMode ? '#94A3B8' : '#6B7280';
+
+  const canvas = document.getElementById('milestoneChart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  if(milestoneChartInstance){ milestoneChartInstance.destroy(); milestoneChartInstance=null; }
+
+  milestoneChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Projected FCF',
+          data: fcfData,
+          borderColor: '#F59E0B',
+          backgroundColor: 'rgba(245,158,11,0.08)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: rows.length<=15 ? 4 : 2,
+          pointHoverRadius: 6,
+          borderWidth: 2,
+          order: 1
+        },
+        {
+          label: 'PV of FCF',
+          data: pvData,
+          borderColor: '#A78BFA',
+          backgroundColor: 'rgba(124,58,237,0.10)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: rows.length<=15 ? 3 : 1,
+          pointHoverRadius: 5,
+          borderWidth: 1.5,
+          order: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            color: tickColor,
+            boxWidth: 10,
+            boxHeight: 10,
+            padding: 14,
+            font: { size: 11, family: 'Inter' }
+          }
+        },
+        tooltip: {
+          backgroundColor: isDarkMode ? '#12141F' : '#fff',
+          borderColor: isDarkMode ? '#252840' : '#dde0f5',
+          borderWidth: 1,
+          titleColor: isDarkMode ? '#F1F5F9' : '#1E1B4B',
+          bodyColor: isDarkMode ? '#94A3B8' : '#6B7280',
+          padding: 10,
+          callbacks: {
+            label: ctx => ` ₹${fmtShort(ctx.raw)} Cr`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: tickColor, maxRotation: 45, font: { size: 10 } },
+          grid: { color: gridColor }
+        },
+        y: {
+          ticks: { color: tickColor, font: { size: 10 }, callback: v => '₹'+fmtShort(v) },
+          grid: { color: gridColor }
+        }
+      }
+    }
+  });
+}
+
+/* ────────────── COMPUTE ────────────── */
+function compute(){
+  const {fcf,dr,g1,g2,tr,mc,sp,nd,mos}=state;
+  if(sp<=0 || tr>=dr) {
+    lastComputed=null;
+    return;
+  }
+  const { rows, pvSum, pvTerminal, enterpriseValue } = calcDCF(fcf,dr,g1,g2,tr);
+
+  const equityValue = enterpriseValue - nd;
+  const shares = sp>0 ? mc/sp : 0; // in Cr shares
+  const intrinsicPerShare = shares>0 ? equityValue/shares : 0;
+  const upside = sp>0 ? ((intrinsicPerShare - sp)/sp)*100 : 0;
+  const buyBelow = intrinsicPerShare*(1-mos/100);
+
+  lastComputed = { rows, pvSum, pvTerminal, enterpriseValue, equityValue, intrinsicPerShare, upside, buyBelow };
+
+  // Show panels
+  document.getElementById('mobileResults').classList.add('active');
+  document.getElementById('resultsContent').style.display='block';
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('futureCard').style.display='block';
+
+  // Arc: explicit FCF PV vs terminal value PV share of enterprise value
+  const explicitPct = enterpriseValue>0 ? pvSum/enterpriseValue : 0;
+  setArc({invest:'arcInvest',earn:'arcEarn'}, explicitPct);
+  document.getElementById('arcTotal').textContent='₹'+fmtShort(enterpriseValue)+' Cr';
+
+  // Pills
+  document.getElementById('res-iv').innerHTML = '<span>₹'+fmt(Math.round(intrinsicPerShare))+'</span>';
+  document.getElementById('res-cp').innerHTML = '<span>₹'+fmt(Math.round(sp))+'</span>';
+
+  const upEl = document.getElementById('res-up');
+  const pillUpside = document.getElementById('pillUpside');
+  upEl.innerHTML = '<span>'+(upside>=0?'+':'')+upside.toFixed(1)+'%</span>';
+  pillUpside.classList.toggle('negative', upside<0);
+
+  // Buy banner
+  document.getElementById('res-bb').textContent = '₹'+fmt(Math.round(buyBelow));
+  document.getElementById('res-bb-sub').textContent = mos+'% below intrinsic value of ₹'+fmt(Math.round(intrinsicPerShare));
+
+  // Table
+  const maxPv = Math.max(...rows.map(r=>r.pv));
+  document.getElementById('futureBody').innerHTML = buildRows(rows, maxPv) +
+    `<tr class="tv-row">
+       <td class="td-year">Terminal <span style="font-size:10px">[Y10+]</span></td>
+       <td class="td-invest">${tr}%</td>
+       <td class="td-earn">—</td>
+       <td class="td-total">₹${fmtShort(pvTerminal)}</td>
+     </tr>`;
+  document.getElementById('futureNote').textContent = `@ ${dr}% discount rate`;
+
+  drawMilestoneChart(rows);
+}
+
+/* ────────────── INIT ────────────── */
+/* Defaults are the Microintel Pvt Ltd worked example — shown as placeholder
+   hints in the number boxes rather than pre-filled values. */
+const defaultVals = { fcf:800, dr:13, g1:18, g2:8, tr:5, mc:40000, sp:950, nd:-2000, mos:25 };
+
+syncFcf(defaultVals.fcf); syncDr(defaultVals.dr); syncG1(defaultVals.g1);
+syncG2(defaultVals.g2); syncTr(defaultVals.tr);
+syncMc(defaultVals.mc); syncSp(defaultVals.sp); syncNd(defaultVals.nd); syncMos(defaultVals.mos);
+
+Object.keys(defaultVals).forEach(function(key){
+  const el = document.getElementById('in-' + key);
+  if(el){
+    el.placeholder = defaultVals[key];
+    el.value = '';
+  }
+});
+</script>
+</body>
+</html>
