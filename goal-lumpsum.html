@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+   <link rel="manifest" href="manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VISION</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- three.js + vanta dots -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.dots.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ────────────────────────────────────────────
+   THEME TOKENS
+──────────────────────────────────────────── */
+:root {
+  --violet:    #7C3AED;
+  --violet-l:  #A78BFA;
+  --gold:      #F59E0B;
+  --gold-l:    #FCD34D;
+  --green:     #10B981;
+  --red:       #EF4444;
+  --radius:    16px;
+  --radius-sm: 10px;
+  --transition: 0.35s cubic-bezier(.4,0,.2,1);
+}
+
+/* DARK */
+[data-theme="dark"] {
+  --bg:      #08091280;
+  --vanta-bg:#080912;
+  --surface: #12141F;
+  --card:    rgba(18,20,31,0.82);
+  --border:  #252840;
+  --text:    #F1F5F9;
+  --muted:   #94A3B8;
+  --dim:     #475569;
+  --input-bg:#0e101a;
+  --logo-from:#ffffff;
+  --toggle-icon: '☀️';
+  --vanta-color: 0x7C3AED;
+  --vanta-color2: 0xF59E0B;
+  --vanta-bg-hex: 0x080912;
+  --card-solid: #14161F;
+  --nm-dark:  rgba(0,0,0,0.5);
+  --nm-light: rgba(255,255,255,0.035);
+}
+
+/* LIGHT */
+[data-theme="light"] {
+  --bg:      rgba(240,242,255,0.7);
+  --vanta-bg:#e8eaf8;
+  --surface: #f0f2ff;
+  --card:    rgba(255,255,255,0.88);
+  --border:  #dde0f5;
+  --text:    #1E1B4B;
+  --muted:   #6B7280;
+  --dim:     #9CA3AF;
+  --input-bg:#f5f6ff;
+  --logo-from:#1E1B4B;
+  --toggle-icon: '🌙';
+  --vanta-color: 0x7C3AED;
+  --vanta-color2: 0xF59E0B;
+  --vanta-bg-hex: 0xe8eaf8;
+  --card-solid: #eef0fb;
+  --nm-dark:  rgba(30,27,75,0.16);
+  --nm-light: rgba(255,255,255,0.9);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+/* ── VANTA CANVAS ── */
+#vanta-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  transition: background var(--transition);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: transparent;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: color var(--transition);
+}
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  z-index: 20;
+  padding: 20px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 6px;
+  background: linear-gradient(135deg, var(--logo-from) 30%, var(--violet-l));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: background var(--transition);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.badge {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── THEME TOGGLE ── */
+.theme-toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: transform 0.3s, border-color 0.3s, background var(--transition);
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 0;
+}
+.theme-toggle:hover { transform: rotate(20deg) scale(1.1); border-color: var(--violet); }
+
+/* ── HERO QUOTE ── */
+.hero-quote {
+  position: relative;
+  z-index: 10;
+  margin: 22px 20px 0;
+  background: var(--card-solid);
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  box-shadow:
+    6px 6px 14px var(--nm-dark),
+    -5px -5px 12px var(--nm-light);
+  transition: box-shadow 0.3s ease;
+}
+.hero-quote::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--violet);
+  border-radius: 3px 0 0 3px;
+}
+.quote-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--violet);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.quote-author {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600; font-size: 12px;
+  color: var(--gold); margin-bottom: 3px;
+}
+.quote-body {
+  font-size: 11px; color: var(--muted);
+  line-height: 1.6; font-style: italic;
+}
+
+/* ── MAIN LAYOUT ── */
+main {
+  position: relative;
+  z-index: 10;
+  padding: 16px 16px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (min-width: 900px) {
+  main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    padding: 20px 32px 60px;
+    align-items: start;
+  }
+  header { padding: 24px 40px 0; }
+  .hero-quote { margin: 22px 32px 0; }
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--card-solid);
+  border: none;
+  border-radius: var(--radius);
+  padding: 22px 18px;
+  margin-bottom: 14px;
+  box-shadow:
+    7px 7px 16px var(--nm-dark),
+    -6px -6px 14px var(--nm-light);
+  transition: box-shadow 0.3s ease;
+}
+.card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 18px;
+}
+
+/* ── SLIDERS ── */
+.input-row { margin-bottom: 26px; }
+.input-row:last-child { margin-bottom: 0; }
+
+.input-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.input-label span:first-child {
+  font-size: 13px; font-weight: 500; color: var(--text);
+}
+.input-label span:last-child {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 17px; font-weight: 700;
+  color: var(--violet-l);
+  min-width: 80px; text-align: right;
+}
+
+.slider-wrap { display: flex; align-items: center; gap: 10px; }
+
+input[type="range"] {
+  -webkit-appearance: none;
+  flex: 1; height: 4px;
+  background: var(--border);
+  border-radius: 4px;
+  outline: none; cursor: pointer;
+  transition: background var(--transition);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--violet);
+  border: 2px solid #fff;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+input[type="range"]::-webkit-slider-thumb:active {
+  box-shadow: 0 0 0 8px rgba(124,58,237,0.2);
+}
+
+input[type="number"] {
+  width: 74px; height: 36px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 600;
+  text-align: center; outline: none;
+  transition: border-color 0.2s, background var(--transition), color var(--transition);
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type="number"]:focus { border-color: var(--violet); }
+input[type="number"].invalid { border-color: var(--red); background: rgba(239,68,68,0.08); }
+
+/* ── SELECT ── */
+.select-field {
+  width: 100%; height: 40px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px; font-weight: 500;
+  padding: 0 12px;
+  outline: none; cursor: pointer;
+  transition: border-color 0.2s, background var(--transition), color var(--transition);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%2394A3B8'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+.select-field:focus { border-color: var(--violet); }
+
+/* ── ERROR ── */
+.error-banner {
+  display: none;
+  background: rgba(239,68,68,0.12);
+  border: 1px solid var(--red);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 12px; color: #FCA5A5;
+  margin-bottom: 14px;
+  animation: slideDown 0.3s ease;
+}
+@keyframes slideDown {
+  from { opacity:0; transform:translateY(-6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── WEALTH METER ARC ── */
+.wealth-meter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 20px 0 12px;
+}
+.arc-container {
+  position: relative;
+  width: 200px; height: 110px;
+}
+.arc-container svg { width: 200px; height: 110px; overflow: visible; }
+.arc-bg      { stroke: var(--border); fill: none; stroke-width: 12; stroke-linecap: round; transition: stroke var(--transition); }
+.arc-invest  { fill: none; stroke-width: 12; stroke-linecap: round; stroke: var(--violet);
+               transition: stroke-dasharray 0.8s cubic-bezier(.4,0,.2,1), stroke-dashoffset 0.8s cubic-bezier(.4,0,.2,1); }
+.arc-earn    { fill: none; stroke-width: 12; stroke-linecap: round; stroke: var(--gold);
+               transition: stroke-dasharray 0.8s cubic-bezier(.4,0,.2,1), stroke-dashoffset 0.8s cubic-bezier(.4,0,.2,1); }
+
+.arc-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -10%);
+  text-align: center;
+}
+.arc-total {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 19px; font-weight: 700;
+  color: var(--text); line-height: 1;
+}
+.arc-label {
+  font-size: 10px; color: var(--dim);
+  margin-top: 2px; letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ── RESULT PILLS ── */
+.result-pills {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px; margin-top: 18px;
+}
+.pill {
+  background: var(--card-solid);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px 8px; text-align: center;
+  box-shadow:
+    inset 3px 3px 7px var(--nm-dark),
+    inset -3px -3px 7px var(--nm-light);
+  transition: box-shadow 0.3s ease;
+}
+.pill-label {
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 5px;
+}
+.pill-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 700; line-height: 1.2;
+}
+.pill-value .unit { font-size: 10px; font-weight: 500; color: var(--dim); }
+.pill-invest .pill-value { color: var(--violet-l); }
+.pill-earn   .pill-value { color: var(--gold); }
+.pill-total  .pill-value { color: var(--green); }
+
+/* ── FUTURE TABLE ── */
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+.section-title { font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; color:var(--text); }
+.section-sub   { font-size:11px; color:var(--dim); }
+.table-wrap    { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+table { width:100%; min-width:400px; border-collapse:collapse; }
+
+thead th {
+  font-size:10px; font-weight:600;
+  letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--dim); padding:8px 10px;
+  text-align:left; border-bottom:1px solid var(--border);
+}
+tbody tr { transition: background 0.15s; }
+tbody tr:hover { background: rgba(124,58,237,0.06); }
+tbody td { padding:10px; font-size:12px; border-bottom:1px solid var(--border); color:var(--text); }
+tbody tr:last-child td { border-bottom:none; }
+
+.td-year    { font-size:11px; color:var(--dim); white-space:nowrap; }
+.td-invest  { color:var(--violet-l); font-family:'Space Grotesk',sans-serif; font-weight:600; }
+.td-earn    { color:var(--gold);     font-family:'Space Grotesk',sans-serif; font-weight:600; }
+.td-total   { color:var(--green);    font-family:'Space Grotesk',sans-serif; font-weight:700; }
+
+.grow-bar-wrap { display:flex; align-items:center; gap:6px; }
+.grow-bar {
+  height:4px; background:var(--border);
+  border-radius:4px; flex:1; overflow:hidden;
+}
+.grow-bar-fill {
+  height:100%; border-radius:4px;
+  background: var(--green);
+  transition: width 0.6s ease;
+}
+
+/* ── FORMULA ── */
+.formula-box {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px; font-weight: 700;
+  text-align: center;
+  color: var(--text);
+  background: var(--card-solid);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 18px 12px;
+  letter-spacing: 1px;
+  box-shadow:
+    inset 3px 3px 8px var(--nm-dark),
+    inset -3px -3px 8px var(--nm-light);
+}
+.formula-box sup { color: var(--gold); font-size: 14px; }
+.formula-legend {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+}
+.formula-legend div {
+  font-size: 12px; color: var(--muted);
+  display: flex; gap: 8px; align-items: baseline;
+}
+.formula-legend span {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700; color: var(--violet-l);
+  min-width: 14px;
+}
+
+/* ── LINE CHART ── */
+.line-chart-wrap {
+  margin-top: 18px;
+  position: relative;
+  height: 220px;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align:center; padding:36px 20px; color:var(--dim); }
+.empty-state svg { opacity:0.3; margin-bottom:10px; }
+.empty-state p { font-size:13px; }
+
+/* ── MOBILE RESULTS ── */
+.results-panel { display:none; }
+.results-panel.active { display:block; }
+
+/* ── FOOTER ── */
+footer {
+  position:relative; z-index:10;
+  text-align:center; padding:0 20px 28px;
+  font-size:11px; color:var(--dim); letter-spacing:1px;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* ── DESKTOP ── */
+@media (min-width:900px) {
+  .left-col  { grid-column:1; }
+  .right-col { grid-column:2; }
+  .results-panel { display:block !important; }
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade-up { animation: fadeUp 0.5s ease both; }
+
+/* ── THEME TRANSITION ── */
+*, *::before, *::after {
+  transition: background-color var(--transition),
+              border-color var(--transition),
+              color var(--transition);
+}
+input[type="range"],
+input[type="range"]::-webkit-slider-thumb { transition: none; }
+</style>
+</head>
+<body>
+
+<!-- VANTA BACKGROUND -->
+<div id="vanta-bg"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">VISION</div>
+  <div class="header-right">
+    <div class="badge">Goal Planning Calculator</div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle dark/light theme">
+      <span id="themeIcon">☀️</span>
+    </button>
+  </div>
+</header>
+
+<!-- QUOTE -->
+<div class="hero-quote">
+  <img class="quote-avatar"
+       src="https://raw.githubusercontent.com/microintel/endgram/main/photo/warren.png"
+       alt="Warren Buffett" onerror="this.style.display='none'">
+  <div>
+    <div class="quote-author">Warren Buffett</div>
+    <div class="quote-body">"A goal without a plan is just a wish."</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main>
+
+  <!-- LEFT: INPUTS -->
+  <div class="left-col">
+
+    <div id="errBanner" class="error-banner"></div>
+
+    <div class="card">
+      <div class="card-title">Configure your Goal</div>
+
+      <!-- Targeted Wealth -->
+      <div class="input-row">
+        <div class="input-label">
+          <span>Targeted Wealth</span>
+          <span id="disp-goal">₹10,00,000</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-goal" min="0" max="100000000" step="10000" value="1000000" oninput="syncGoal(this.value)">
+          <input type="number" id="in-goal" min="0" max="1000000000" value="1000000" oninput="syncGoalNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Return Rate -->
+      <div class="input-row">
+        <div class="input-label">
+          <span>Expected Annual Return</span>
+          <span id="disp-ar">12%</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-ar" min="0" max="50" step="0.5" value="12" oninput="syncAr(this.value)">
+          <input type="number" id="in-ar" min="0" max="70" value="12" oninput="syncArNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Duration -->
+      <div class="input-row">
+        <div class="input-label">
+          <span>Investment Tenure</span>
+          <span id="disp-ip">10 yrs</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-ip" min="0" max="50" step="1" value="10" oninput="syncIp(this.value)">
+          <input type="number" id="in-ip" min="0" max="50" value="10" oninput="syncIpNum(this.value)">
+        </div>
+      </div>
+
+      <!-- Inflation Toggle -->
+      <div class="input-row">
+        <div class="input-label">
+          <span>Adjust for Inflation</span>
+        </div>
+        <select id="sel-infl" class="select-field" onchange="toggleInfl(this.value)">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+
+      <!-- Inflation Rate (conditional) -->
+      <div class="input-row" id="row-infl" style="display:none">
+        <div class="input-label">
+          <span>Expected Inflation Rate</span>
+          <span id="disp-infl">6%</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="sl-infl" min="0" max="20" step="0.5" value="6" oninput="syncInfl(this.value)">
+          <input type="number" id="in-infl" min="0" max="30" value="6" oninput="syncInflNum(this.value)">
+        </div>
+      </div>
+    </div>
+
+    <!-- MOBILE RESULTS -->
+    <div id="mobileResults" class="results-panel card">
+      <div class="card-title">Your Results</div>
+
+      <div id="emptyState" class="empty-state">
+        <svg width="38" height="38" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-width="1.5" d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 6v4m0 4h.01"/>
+        </svg>
+        <p>Adjust the sliders above to see your projection.</p>
+      </div>
+
+      <div id="resultsContent" style="display:none">
+        <div class="wealth-meter">
+          <div class="arc-container">
+            <svg viewBox="-10 -10 220 130">
+              <path class="arc-bg" d="M 10 100 A 90 90 0 0 1 190 100"/>
+              <path id="arcInvest" class="arc-invest" d="M 10 100 A 90 90 0 0 1 190 100" stroke-dasharray="283" stroke-dashoffset="283"/>
+              <path id="arcEarn"   class="arc-earn"   d="M 10 100 A 90 90 0 0 1 190 100" stroke-dasharray="283" stroke-dashoffset="283"/>
+            </svg>
+            <div class="arc-center">
+              <div class="arc-total" id="arcTotal">—</div>
+              <div class="arc-label">Goal</div>
+            </div>
+          </div>
+        </div>
+        <div class="result-pills">
+          <div class="pill pill-invest"><div class="pill-label">Invest Now</div><div class="pill-value" id="res-inv">—</div></div>
+          <div class="pill pill-earn">  <div class="pill-label">Growth</div>  <div class="pill-value" id="res-earn">—</div></div>
+          <div class="pill pill-total"> <div class="pill-label">Target</div>   <div class="pill-value" id="res-total">—</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <!-- RIGHT -->
+  <div class="right-col">
+
+    <div class="card" id="futureCard" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Future Milestones</div>
+        <div class="section-sub" id="futureNote"></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Timeline</th><th>Base</th><th>Growth</th><th>Value</th></tr></thead>
+          <tbody id="futureBody"></tbody>
+        </table>
+      </div>
+      <div class="line-chart-wrap">
+        <canvas id="milestoneChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">The Formula</div>
+      <div class="formula-box">P = A / (1 + r/100)<sup>n</sup></div>
+      <div class="formula-legend">
+        <div><span>P</span> Investment required today</div>
+        <div><span>A</span> Targeted wealth (future value)</div>
+        <div><span>r</span> Expected annual rate of return (%)</div>
+        <div><span>n</span> Investment tenure (years)</div>
+      </div>
+      <div class="formula-legend" id="inflFormulaNote" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid var(--border)">
+        <div style="display:block">When inflation-adjusted, A is first inflated: A = Goal × (1 + i/100)ⁿ, where i is the inflation rate.</div>
+      </div>
+    </div>
+
+  </div><!-- /right -->
+</main>
+
+<footer>VISION &nbsp;·&nbsp; Your wealth, visualised</footer>
+
+<script>
+/* ────────────── THEME ────────────── */
+const DARK_VANTA  = { backgroundColor:0x080912, color:0x7C3AED, color2:0x7C3AED };
+const LIGHT_VANTA = { backgroundColor:0xe8eaf8, color:0x7C3AED, color2:0x7C3AED };
+
+let isDark = true;
+let vantaEffect = null;
+
+function initVanta(opts){
+  if(vantaEffect) vantaEffect.destroy();
+  vantaEffect = VANTA.DOTS({
+    el: '#vanta-bg',
+    THREE: THREE,
+    mouseControls: true,
+    touchControls: true,
+    gyroControls: false,
+    minHeight: 200,
+    minWidth: 200,
+    scale: 1.0,
+    scaleMobile: 1.0,
+    backgroundColor: opts.backgroundColor,
+    color: opts.color,
+    color2: opts.color2,
+    size: 2.5,
+    spacing: 30,
+    showLines: false
+  });
+}
+
+function toggleTheme(){
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+  initVanta(isDark ? DARK_VANTA : LIGHT_VANTA);
+  // Redraw chart with new bg
+  if(lastInv !== null) drawMilestoneChart(lastInv, state.ar, state.ip);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  initVanta(DARK_VANTA);
+});
+
+/* ────────────── STATE ────────────── */
+let state = { goal:1000000, ar:12, ip:10, inflOn:false, infl:6 };
+let lastInv = null, lastEar = null;
+
+/* ────────────── SYNC ────────────── */
+function clamp(v,mn,mx){ return Math.min(Math.max(+v||0,mn),mx); }
+
+function syncGoal(v){
+  v=clamp(v,0,1000000000); state.goal=v;
+  document.getElementById('sl-goal').value=Math.min(v,100000000);
+  document.getElementById('in-goal').value=v;
+  document.getElementById('disp-goal').textContent='₹'+fmt(v);
+  validate(); compute();
+}
+function syncGoalNum(v){ syncGoal(v); }
+
+function syncAr(v){
+  v=clamp(v,0,70); state.ar=v;
+  document.getElementById('sl-ar').value=Math.min(v,50);
+  document.getElementById('in-ar').value=v;
+  document.getElementById('disp-ar').textContent=v+'%';
+  validate(); compute();
+}
+function syncArNum(v){ syncAr(v); }
+
+function syncIp(v){
+  v=clamp(v,0,50); state.ip=v;
+  document.getElementById('sl-ip').value=v;
+  document.getElementById('in-ip').value=v;
+  document.getElementById('disp-ip').textContent=v+' yrs';
+  validate(); compute();
+}
+function syncIpNum(v){ syncIp(v); }
+
+function syncInfl(v){
+  v=clamp(v,0,30); state.infl=v;
+  document.getElementById('sl-infl').value=Math.min(v,20);
+  document.getElementById('in-infl').value=v;
+  document.getElementById('disp-infl').textContent=v+'%';
+  validate(); compute();
+}
+function syncInflNum(v){ syncInfl(v); }
+
+function toggleInfl(v){
+  state.inflOn = (v==='yes');
+  document.getElementById('row-infl').style.display = state.inflOn ? 'block' : 'none';
+  document.getElementById('inflFormulaNote').style.display = state.inflOn ? 'block' : 'none';
+  compute();
+}
+
+/* ────────────── VALIDATION ────────────── */
+function validate(){
+  const b=document.getElementById('errBanner');
+  let msg='';
+  if(state.goal<0)      msg='Targeted wealth cannot be negative.';
+  else if(state.ar<=0 && state.goal>0) msg='Return rate must be greater than 0% to reach a goal.';
+  else if(state.ar<0 || state.ar>70) msg='Return rate must be between 0% and 70%.';
+  else if(state.ip<=0 && state.goal>0) msg='Tenure must be greater than 0 years to reach a goal.';
+  else if(state.ip<0 || state.ip>50) msg='Tenure must be between 0 and 50 years.';
+  else if(state.inflOn && (state.infl<0 || state.infl>30)) msg='Inflation rate must be between 0% and 30%.';
+  b.textContent=msg; b.style.display=msg?'block':'none';
+}
+
+/* ────────────── FORMAT ────────────── */
+function fmt(n){ return n.toLocaleString('en-IN',{maximumFractionDigits:0}); }
+
+function fmtShort(n){
+  if(n>=1e12) return (n/1e12).toFixed(1)+'T';
+  if(n>=1e7)  return (n/1e7).toFixed(1)+'Cr';
+  if(n>=1e5)  return (n/1e5).toFixed(1)+'L';
+  if(n>=1e3)  return (n/1e3).toFixed(1)+'K';
+  return n.toFixed(0);
+}
+
+function fmtPill(n){
+  if(n>=1e12) return `<span>${(n/1e12).toFixed(2)}</span><span class="unit"> T</span>`;
+  if(n>=1e7)  return `<span>${(n/1e7).toFixed(2)}</span><span class="unit"> Cr</span>`;
+  if(n>=1e5)  return `<span>${(n/1e5).toFixed(2)}</span><span class="unit"> L</span>`;
+  if(n>=1e3)  return `<span>${(n/1e3).toFixed(1)}</span><span class="unit"> K</span>`;
+  return `<span>${n.toFixed(0)}</span>`;
+}
+
+/* ────────────── LUMPSUM CALC ────────────── */
+function calcLumpsum(amt,rate,years){
+  const fv = amt * Math.pow(1+rate/100, years);
+  const inv = amt;
+  return { fv, inv, ear:fv-inv };
+}
+
+/* ────────────── GOAL CALC (reverse lumpsum) ────────────── */
+function calcGoal(goal,rate,years,inflOn,infl){
+  const adjGoal = inflOn ? goal * Math.pow(1+infl/100, years) : goal;
+  const growthFactor = Math.pow(1+rate/100, years);
+  const required = growthFactor>0 ? adjGoal / growthFactor : 0;
+  return { adjGoal, required, growth: adjGoal-required };
+}
+
+/* ────────────── ARC ────────────── */
+const ARC_LEN=283;
+
+function setArc(ids, invPct){
+  const el_i = document.getElementById(ids.invest);
+  const el_e = document.getElementById(ids.earn);
+  if(!el_i||!el_e) return;
+  const iLen = ARC_LEN * invPct;
+  const eLen = ARC_LEN * (1-invPct);
+  el_i.style.strokeDasharray  = `${iLen} ${eLen+2}`;
+  el_i.style.strokeDashoffset = '0';
+  el_e.style.strokeDasharray  = `${eLen} ${iLen+2}`;
+  el_e.style.strokeDashoffset = `-${iLen}`;
+}
+
+/* ────────────── FUTURE TABLE ────────────── */
+function buildFutureRows(amt,rate,years){
+  const y=new Date().getFullYear();
+  const maxFv=calcLumpsum(amt,rate,years).fv;
+  let rows='';
+  for(let yr=1;yr<=years;yr++){
+    const {fv,inv,ear}=calcLumpsum(amt,rate,yr);
+    const pct=maxFv>0 ? Math.min(100,(fv/maxFv)*100) : 0;
+    rows+=`<tr>
+      <td class="td-year">${y+yr} <span style="font-size:10px">[${yr}y]</span></td>
+      <td class="td-invest">₹${fmtShort(inv)}</td>
+      <td class="td-earn">₹${fmtShort(ear)}</td>
+      <td class="td-total">
+        <div class="grow-bar-wrap">
+          <span>₹${fmtShort(fv)}</span>
+          <div class="grow-bar"><div class="grow-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+      </td>
+    </tr>`;
+  }
+  return rows;
+}
+
+/* ────────────── LINE CHART ────────────── */
+let milestoneChartInstance = null;
+
+function drawMilestoneChart(amt, rate, years){
+  const y = new Date().getFullYear();
+  const labels=[], invData=[], earData=[], totalData=[];
+  for(let yr=1;yr<=years;yr++){
+    const {fv,inv,ear}=calcLumpsum(amt,rate,yr);
+    labels.push(y+yr);
+    invData.push(Math.round(inv));
+    earData.push(Math.round(ear));
+    totalData.push(Math.round(fv));
+  }
+  const isDarkMode = document.documentElement.getAttribute('data-theme')==='dark';
+  const gridColor  = isDarkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+  const tickColor  = isDarkMode ? '#94A3B8' : '#6B7280';
+
+  const canvas = document.getElementById('milestoneChart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  if(milestoneChartInstance){ milestoneChartInstance.destroy(); milestoneChartInstance=null; }
+
+  milestoneChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Total Value',
+          data: totalData,
+          borderColor: '#10B981',
+          backgroundColor: 'rgba(16,185,129,0.10)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: years<=15 ? 4 : 2,
+          pointHoverRadius: 6,
+          borderWidth: 2,
+          order: 1
+        },
+        {
+          label: 'Earned',
+          data: earData,
+          borderColor: '#F59E0B',
+          backgroundColor: 'rgba(245,158,11,0.08)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: years<=15 ? 3 : 1,
+          pointHoverRadius: 5,
+          borderWidth: 1.5,
+          order: 2
+        },
+        {
+          label: 'Invested',
+          data: invData,
+          borderColor: '#A78BFA',
+          backgroundColor: 'rgba(124,58,237,0.08)',
+          fill: true,
+          tension: 0.2,
+          pointRadius: years<=15 ? 3 : 1,
+          pointHoverRadius: 5,
+          borderWidth: 1.5,
+          borderDash: [4,3],
+          order: 3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            color: tickColor,
+            boxWidth: 10,
+            boxHeight: 10,
+            padding: 14,
+            font: { size: 11, family: 'Inter' }
+          }
+        },
+        tooltip: {
+          backgroundColor: isDarkMode ? '#12141F' : '#fff',
+          borderColor: isDarkMode ? '#252840' : '#dde0f5',
+          borderWidth: 1,
+          titleColor: isDarkMode ? '#F1F5F9' : '#1E1B4B',
+          bodyColor: isDarkMode ? '#94A3B8' : '#6B7280',
+          padding: 10,
+          callbacks: {
+            label: ctx => ` ₹${fmtShort(ctx.raw)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: tickColor,
+            maxRotation: 45,
+            font: { size: 10 },
+            maxTicksLimit: Math.min(years, 15)
+          },
+          grid: { color: gridColor }
+        },
+        y: {
+          ticks: {
+            color: tickColor,
+            font: { size: 10 },
+            callback: v => '₹'+fmtShort(v)
+          },
+          grid: { color: gridColor }
+        }
+      }
+    }
+  });
+}
+
+/* ────────────── COMPUTE ────────────── */
+function compute(){
+  const {goal,ar,ip,inflOn,infl}=state;
+  if(goal==null||ar==null||ip==null) return;
+  const {adjGoal,required,growth}=calcGoal(goal,ar,ip,inflOn,infl);
+  lastInv=required; lastEar=growth;
+  const invPct=adjGoal>0 ? required/adjGoal : 0;
+
+  // Show panels
+  document.getElementById('mobileResults').classList.add('active');
+  document.getElementById('resultsContent').style.display='block';
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('futureCard').style.display='block';
+
+  // Arcs
+  setArc({invest:'arcInvest',earn:'arcEarn'},invPct);
+
+  // Totals
+  document.getElementById('arcTotal').textContent='₹'+fmtShort(adjGoal);
+
+  // Pills
+  [['res-inv',required],['res-earn',growth],['res-total',adjGoal]].forEach(([id,val])=>{
+    document.getElementById(id).innerHTML=fmtPill(val);
+  });
+
+  document.getElementById('futureBody').innerHTML=buildFutureRows(required,ar,ip);
+  document.getElementById('futureNote').textContent = inflOn ? `@ ${ar}% p.a. · ${infl}% inflation` : `@ ${ar}% p.a.`;
+  drawMilestoneChart(required,ar,ip);
+}
+
+/* ────────────── INIT ────────────── */
+syncGoal(1000000); syncAr(12); syncIp(10); syncInfl(6);
+</script>
+</body>
+</html>

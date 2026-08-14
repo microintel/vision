@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VISION — CAGR Calculators</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.dots.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ────────────────────────────────────────────
+   THEME TOKENS
+──────────────────────────────────────────── */
+:root {
+  --violet:    #7C3AED;
+  --violet-l:  #A78BFA;
+  --gold:      #F59E0B;
+  --gold-l:    #FCD34D;
+  --green:     #10B981;
+  --red:       #EF4444;
+  --radius:    16px;
+  --radius-sm: 10px;
+  --transition: 0.35s cubic-bezier(.4,0,.2,1);
+}
+
+[data-theme="dark"] {
+  --bg:      #08091280;
+  --vanta-bg:#080912;
+  --surface: #12141F;
+  --card:    rgba(18,20,31,0.82);
+  --border:  #252840;
+  --text:    #F1F5F9;
+  --muted:   #94A3B8;
+  --dim:     #475569;
+  --input-bg:#0e101a;
+  --logo-from:#ffffff;
+  --card-solid: #14161F;
+  --nm-dark:  rgba(0,0,0,0.5);
+  --nm-light: rgba(255,255,255,0.035);
+}
+
+[data-theme="light"] {
+  --bg:      rgba(240,242,255,0.7);
+  --vanta-bg:#e8eaf8;
+  --surface: #f0f2ff;
+  --card:    rgba(255,255,255,0.88);
+  --border:  #dde0f5;
+  --text:    #1E1B4B;
+  --muted:   #6B7280;
+  --dim:     #9CA3AF;
+  --input-bg:#f5f6ff;
+  --logo-from:#1E1B4B;
+  --card-solid: #eef0fb;
+  --nm-dark:  rgba(30,27,75,0.16);
+  --nm-light: rgba(255,255,255,0.9);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+#vanta-bg { position: fixed; inset: 0; z-index: 0; transition: background var(--transition); }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: transparent;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: color var(--transition);
+}
+
+header {
+  position: relative; z-index: 20;
+  padding: 20px 24px 0;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700; font-size: 22px; letter-spacing: 6px;
+  background: linear-gradient(135deg, var(--logo-from) 30%, var(--violet-l));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  transition: background var(--transition);
+}
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.badge {
+  font-size: 10px; font-weight: 500; letter-spacing: 2px;
+  color: var(--muted); background: var(--card); border: 1px solid var(--border);
+  padding: 5px 12px; border-radius: 20px; text-transform: uppercase;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.theme-toggle {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--card);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; transition: transform 0.3s, border-color 0.3s, background var(--transition);
+  flex-shrink: 0; line-height: 1; padding: 0;
+}
+.theme-toggle:hover { transform: rotate(20deg) scale(1.1); border-color: var(--violet); }
+
+.hero-quote {
+  position: relative; z-index: 10;
+  margin: 22px 20px 0;
+  background: var(--card-solid); border: none; border-radius: var(--radius);
+  padding: 16px 18px; display: flex; align-items: center; gap: 14px; overflow: hidden;
+  box-shadow: 6px 6px 14px var(--nm-dark), -5px -5px 12px var(--nm-light);
+  transition: box-shadow 0.3s ease;
+}
+.hero-quote::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--violet); border-radius: 3px 0 0 3px;
+}
+.quote-avatar { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--violet); object-fit: cover; flex-shrink: 0; }
+.quote-author { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12px; color: var(--gold); margin-bottom: 3px; }
+.quote-body { font-size: 11px; color: var(--muted); line-height: 1.6; font-style: italic; }
+
+/* ── TAB DROPDOWN ── */
+.tab-select-wrap {
+  position: relative; z-index: 10;
+  padding: 16px 20px 6px;
+}
+.tab-select {
+  -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  width: 100%;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13.5px; font-weight: 600; letter-spacing: 0.3px;
+  color: var(--text); background: var(--card-solid);
+  border: 1px solid var(--border);
+  padding: 13px 42px 13px 16px; border-radius: var(--radius-sm); cursor: pointer;
+  box-shadow: 5px 5px 12px var(--nm-dark), -4px -4px 10px var(--nm-light);
+  transition: all 0.25s ease;
+  background-image: linear-gradient(135deg, var(--violet-l) 50%, transparent 50%),
+                     linear-gradient(45deg, transparent 50%, var(--violet-l) 50%);
+  background-position: calc(100% - 22px) center, calc(100% - 17px) center;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+.tab-select:hover { border-color: var(--violet); }
+.tab-select:focus { outline: none; border-color: var(--violet); box-shadow: 0 0 0 3px rgba(124,58,237,0.2); }
+.tab-select option {
+  background: var(--card-solid); color: var(--text);
+  font-family: 'Inter', sans-serif; font-weight: 500; padding: 10px;
+}
+
+@media (min-width: 900px) {
+  .tab-select-wrap { padding: 16px 32px 6px; }
+  .tab-select { max-width: 420px; }
+}
+
+main {
+  position: relative; z-index: 10;
+  padding: 16px 16px 40px;
+  max-width: 1200px; margin: 0 auto;
+}
+
+@media (min-width: 900px) {
+  main { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; padding: 20px 32px 60px; align-items: start; }
+  header { padding: 24px 40px 0; }
+  .hero-quote { margin: 22px 32px 0; }
+}
+
+.card {
+  background: var(--card-solid); border: none; border-radius: var(--radius);
+  padding: 22px 18px; margin-bottom: 14px;
+  box-shadow: 7px 7px 16px var(--nm-dark), -6px -6px 14px var(--nm-light);
+  transition: box-shadow 0.3s ease;
+}
+.card-title {
+  font-family: 'Space Grotesk', sans-serif; font-size: 10px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--dim); margin-bottom: 18px;
+}
+.group-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold); margin: 18px 0 12px;
+}
+.group-label:first-child { margin-top: 0; }
+
+.input-row { margin-bottom: 26px; }
+.input-row:last-child { margin-bottom: 0; }
+
+.input-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.input-label span:first-child { font-size: 13px; font-weight: 500; color: var(--text); }
+.input-label span:last-child {
+  font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 700;
+  color: var(--violet-l); min-width: 80px; text-align: right;
+}
+
+.slider-wrap { display: flex; align-items: center; gap: 10px; }
+
+input[type="range"] {
+  -webkit-appearance: none; flex: 1; height: 4px;
+  background: var(--border); border-radius: 4px; outline: none; cursor: pointer;
+  transition: background var(--transition);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--violet); border: 2px solid #fff; cursor: pointer; transition: box-shadow 0.2s;
+}
+input[type="range"]::-webkit-slider-thumb:active { box-shadow: 0 0 0 8px rgba(124,58,237,0.2); }
+
+input[type="number"] {
+  width: 74px; height: 36px; background: var(--input-bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600;
+  text-align: center; outline: none;
+  transition: border-color 0.2s, background var(--transition), color var(--transition);
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type="number"]:focus { border-color: var(--violet); }
+
+/* ── WEALTH METER ARC ── */
+.wealth-meter { display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 20px 0 12px; }
+.arc-container { position: relative; width: 200px; height: 110px; }
+.arc-container svg { width: 200px; height: 110px; overflow: visible; }
+.arc-bg     { stroke: var(--border); fill: none; stroke-width: 12; stroke-linecap: round; transition: stroke var(--transition); }
+.arc-invest { fill: none; stroke-width: 12; stroke-linecap: round; stroke: var(--violet);
+              transition: stroke-dasharray 0.8s cubic-bezier(.4,0,.2,1), stroke-dashoffset 0.8s cubic-bezier(.4,0,.2,1); }
+.arc-earn   { fill: none; stroke-width: 12; stroke-linecap: round; stroke: var(--gold);
+              transition: stroke-dasharray 0.8s cubic-bezier(.4,0,.2,1), stroke-dashoffset 0.8s cubic-bezier(.4,0,.2,1), stroke 0.3s; }
+.arc-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -10%); text-align: center; }
+.arc-total  { font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 700; color: var(--text); line-height: 1; }
+.arc-label  { font-size: 10px; color: var(--dim); margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
+
+/* ── DURATION HERO ── */
+.duration-hero { text-align: center; padding: 26px 0 8px; }
+.duration-value { font-family: 'Space Grotesk', sans-serif; font-size: 46px; font-weight: 700; color: var(--violet-l); line-height: 1; }
+.duration-unit { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 2px; margin-top: 8px; }
+
+/* ── COMPARE STATS ── */
+.compare-stats { display: flex; gap: 12px; padding: 8px 0 18px; }
+.stat-block {
+  flex: 1; text-align: center; background: var(--card-solid); border-radius: var(--radius-sm);
+  padding: 16px 8px;
+  box-shadow: inset 3px 3px 7px var(--nm-dark), inset -3px -3px 7px var(--nm-light);
+  transition: box-shadow 0.3s ease;
+}
+.stat-block.winner { box-shadow: 0 0 0 2px var(--green), inset 3px 3px 7px var(--nm-dark), inset -3px -3px 7px var(--nm-light); }
+.stat-label { font-size: 9px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; }
+.stat-value { font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 700; }
+.compare-note { text-align: center; font-size: 12px; color: var(--dim); margin-top: -8px; margin-bottom: 4px; }
+
+/* ── RESULT PILLS ── */
+.result-pills { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 18px; }
+.pill {
+  background: var(--card-solid); border: none; border-radius: var(--radius-sm);
+  padding: 12px 8px; text-align: center;
+  box-shadow: inset 3px 3px 7px var(--nm-dark), inset -3px -3px 7px var(--nm-light);
+  transition: box-shadow 0.3s ease;
+}
+.pill-label { font-size: 9px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); margin-bottom: 5px; }
+.pill-value { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; line-height: 1.2; }
+.pill-value .unit { font-size: 10px; font-weight: 500; color: var(--dim); }
+.pill-invest .pill-value { color: var(--violet-l); }
+.pill-earn   .pill-value { color: var(--gold); }
+.pill-total  .pill-value { color: var(--green); }
+
+/* ── TABLE ── */
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.section-title { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); }
+.section-sub   { font-size: 11px; color: var(--dim); }
+.table-wrap    { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; min-width: 400px; border-collapse: collapse; }
+thead th { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+tbody tr { transition: background 0.15s; }
+tbody tr:hover { background: rgba(124,58,237,0.06); }
+tbody td { padding: 10px; font-size: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+tbody tr:last-child td { border-bottom: none; }
+.td-year   { font-size: 11px; color: var(--dim); white-space: nowrap; }
+.td-invest { color: var(--violet-l); font-family: 'Space Grotesk', sans-serif; font-weight: 600; }
+.td-earn   { color: var(--gold); font-family: 'Space Grotesk', sans-serif; font-weight: 600; }
+.td-total  { color: var(--green); font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
+.grow-bar-wrap { display: flex; align-items: center; gap: 6px; }
+.grow-bar { height: 4px; background: var(--border); border-radius: 4px; flex: 1; overflow: hidden; }
+.grow-bar-fill { height: 100%; border-radius: 4px; background: var(--green); transition: width 0.6s ease; }
+
+/* ── FORMULA ── */
+.formula-box {
+  font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; text-align: center;
+  color: var(--text); background: var(--card-solid); border: none; border-radius: var(--radius-sm);
+  padding: 18px 12px; letter-spacing: 0.5px;
+  box-shadow: inset 3px 3px 8px var(--nm-dark), inset -3px -3px 8px var(--nm-light);
+}
+.formula-box sup { color: var(--gold); font-size: 13px; }
+.formula-legend { margin-top: 14px; display: grid; gap: 8px; }
+.formula-legend div { font-size: 12px; color: var(--muted); display: flex; gap: 8px; align-items: baseline; }
+.formula-legend span { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--violet-l); min-width: 14px; }
+
+.insight-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* ── EXAMPLE CARD ── */
+.example-num { font-family: 'Space Grotesk', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; }
+.example-desc { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin-bottom: 12px; }
+.example-box {
+  background: rgba(124,58,237,0.07); border-left: 3px solid var(--violet);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 10px 12px; font-size: 12.5px; color: var(--text); line-height: 1.6;
+}
+.example-box .result { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--green); }
+.example-box .result.neg { color: var(--red); }
+
+.line-chart-wrap { margin-top: 18px; position: relative; height: 220px; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+footer { position: relative; z-index: 10; text-align: center; padding: 0 20px 28px; font-size: 11px; color: var(--dim); letter-spacing: 1px; }
+
+*, *::before, *::after { transition: background-color var(--transition), border-color var(--transition), color var(--transition); }
+input[type="range"], input[type="range"]::-webkit-slider-thumb { transition: none; }
+</style>
+</head>
+<body>
+
+<div id="vanta-bg"></div>
+
+<header>
+  <div class="logo">VISION</div>
+  <div class="header-right">
+    <div class="badge" id="calcBadge">Basic CAGR</div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle dark/light theme">
+      <span id="themeIcon">☀️</span>
+    </button>
+  </div>
+</header>
+
+<div class="hero-quote">
+  <img class="quote-avatar" src="https://raw.githubusercontent.com/microintel/endgram/main/photo/warren.png" alt="Warren Buffett" onerror="this.style.display='none'">
+  <div>
+    <div class="quote-author">Warren Buffett</div>
+    <div class="quote-body">"Compound interest is the eighth wonder of the world."</div>
+  </div>
+</div>
+
+<div class="tab-select-wrap">
+  <select class="tab-select" id="tabSelect" onchange="switchTab(this.value)" aria-label="Choose calculator type"></select>
+</div>
+
+<main>
+  <div class="left-col">
+    <div id="inputsCard"></div>
+    <div class="card">
+      <div class="card-title">Your Results</div>
+      <div id="resultsBody"></div>
+    </div>
+  </div>
+
+  <div class="right-col">
+    <div id="rightBody"></div>
+  </div>
+</main>
+
+<footer>VISION &nbsp;·&nbsp; 14 ways to measure growth &nbsp;·&nbsp; Developed by Microintel</footer>
+
+<script>
+/* ────────────── THEME / VANTA ────────────── */
+const DARK_VANTA  = { backgroundColor:0x080912, color:0x7C3AED, color2:0x7C3AED };
+const LIGHT_VANTA = { backgroundColor:0xe8eaf8, color:0x7C3AED, color2:0x7C3AED };
+let isDark = true;
+let vantaEffect = null;
+
+function initVanta(opts){
+  if(vantaEffect) vantaEffect.destroy();
+  vantaEffect = VANTA.DOTS({
+    el: '#vanta-bg', THREE: THREE,
+    mouseControls: true, touchControls: true, gyroControls: false,
+    minHeight: 200, minWidth: 200, scale: 1.0, scaleMobile: 1.0,
+    backgroundColor: opts.backgroundColor, color: opts.color, color2: opts.color2,
+    size: 2.5, spacing: 30, showLines: false
+  });
+}
+
+function toggleTheme(){
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+  initVanta(isDark ? DARK_VANTA : LIGHT_VANTA);
+  compute();
+}
+
+/* ────────────── FORMAT HELPERS ────────────── */
+function fmtSmart(n){
+  if(!isFinite(n)) return '0';
+  if(Math.abs(n) < 1000 && !Number.isInteger(n)) return n.toLocaleString('en-IN',{maximumFractionDigits:2});
+  return n.toLocaleString('en-IN',{maximumFractionDigits:0});
+}
+function fmtShort(n){
+  if(!isFinite(n)) return '0';
+  const a = Math.abs(n);
+  if(a>=1e12) return (n/1e12).toFixed(1)+'T';
+  if(a>=1e7)  return (n/1e7).toFixed(1)+'Cr';
+  if(a>=1e5)  return (n/1e5).toFixed(1)+'L';
+  if(a>=1e3)  return (n/1e3).toFixed(1)+'K';
+  return Number.isInteger(n) ? n.toFixed(0) : n.toFixed(2);
+}
+
+/* ────────────── CORE MATH ────────────── */
+function computeCAGR(pv,fv,n){ if(pv<=0 || n<=0) return 0; return (Math.pow(fv/pv, 1/n) - 1) * 100; }
+function computeFV(pv,r,n){ return pv * Math.pow(1+r/100, n); }
+function computePV(fv,r,n){ return fv / Math.pow(1+r/100, n); }
+function computeDuration(pv,fv,r){
+  if(pv<=0 || fv<=0) return NaN;
+  const base = 1+r/100; if(base<=0) return NaN;
+  const ratio = fv/pv; if(ratio<=0) return NaN;
+  return Math.log(ratio) / Math.log(base);
+}
+function calcCompound(amt,rate,years){ const fv = amt*Math.pow(1+rate/100, years); return { fv, inv:amt, gain: fv-amt }; }
+
+/* ────────────── TAB CONFIG ────────────── */
+const F = (label,min,max,step,def,unit) => ({label,min,max,step,def,unit});
+
+const TABS = [
+  { id:'basic', label:'Basic CAGR', mode:'cagr', fields:{
+      pv:F('Initial Value',0,10000000,1000,100000),
+      fv:F('Final Value',0,10000000,1000,250000),
+      n:F('Time Period',1,50,1,5,'yrs')
+  }},
+  { id:'investment', label:'Investment CAGR', mode:'cagr', fields:{
+      pv:F('Initial Investment',0,10000000,1000,50000),
+      fv:F('Final Value',0,10000000,1000,150000),
+      n:F('Investment Period',1,50,1,7,'yrs')
+  }},
+  { id:'futurevalue', label:'Future Value', mode:'fv', fields:{
+      pv:F('Present Value',0,10000000,1000,100000),
+      r:F('Expected CAGR',0,50,0.5,15,'%'),
+      n:F('Time Period',1,50,1,10,'yrs')
+  }},
+  { id:'presentvalue', label:'Present Value', mode:'pv', fields:{
+      fv:F('Future Value',0,100000000,10000,1000000),
+      r:F('Expected CAGR',0,50,0.5,12,'%'),
+      n:F('Time Period',1,50,1,8,'yrs')
+  }},
+  { id:'duration', label:'Duration', mode:'duration', fields:{
+      pv:F('Initial Value',0,10000000,1000,100000),
+      fv:F('Final Value',0,10000000,1000,200000),
+      r:F('Expected CAGR',0.5,50,0.5,12,'%')
+  }},
+  { id:'growth', label:'Investment Growth', mode:'growth', fields:{
+      pv:F('Present Value',0,10000000,1000,100000),
+      r:F('Expected CAGR',0,50,0.5,14,'%'),
+      n:F('Time Period',1,50,1,15,'yrs')
+  }},
+  { id:'cagrvsabs', label:'CAGR vs Absolute', mode:'cagrvsabs', fields:{
+      pv:F('Initial Value',0,10000000,1000,100000),
+      fv:F('Final Value',0,10000000,1000,180000),
+      n:F('Time Period',1,50,1,3,'yrs')
+  }},
+  { id:'inflation', label:'Inflation-Adjusted', mode:'inflation', fields:{
+      pv:F('Initial Value',0,10000000,1000,100000),
+      fv:F('Final Value',0,10000000,1000,300000),
+      n:F('Time Period',1,50,1,10,'yrs'),
+      infl:F('Inflation Rate',0,15,0.5,6,'%')
+  }},
+  { id:'comparison', label:'CAGR Comparison', mode:'comparison',
+    groups:[
+      {title:'Investment A', keys:['pvA','fvA','nA']},
+      {title:'Investment B', keys:['pvB','fvB','nB']}
+    ],
+    fields:{
+      pvA:F('Initial Value',0,10000000,1000,100000),
+      fvA:F('Final Value',0,10000000,1000,200000),
+      nA:F('Time Period',1,50,1,5,'yrs'),
+      pvB:F('Initial Value',0,10000000,1000,100000),
+      fvB:F('Final Value',0,10000000,1000,260000),
+      nB:F('Time Period',1,50,1,5,'yrs')
+  }},
+  { id:'stock', label:'Stock CAGR', mode:'cagr', fields:{
+      pv:F('Purchase Price',0,100000,1,540),
+      fv:F('Current Price',0,100000,1,2150),
+      n:F('Holding Period',1,50,1,6,'yrs')
+  }},
+  { id:'mutualfund', label:'Mutual Fund CAGR', mode:'cagr', fields:{
+      pv:F('Starting NAV',0,10000,0.1,22.5),
+      fv:F('Current NAV',0,10000,0.1,68.4),
+      n:F('Investment Period',1,50,1,8,'yrs')
+  }},
+  { id:'business', label:'Business Revenue CAGR', mode:'cagr', fields:{
+      pv:F('Starting Revenue',0,1000000000,10000,5000000),
+      fv:F('Ending Revenue',0,1000000000,10000,18000000),
+      n:F('Number of Years',1,50,1,6,'yrs')
+  }},
+  { id:'market', label:'Market CAGR', mode:'cagr', fields:{
+      pv:F('Index Start Value',0,200000,10,18000),
+      fv:F('Index End Value',0,200000,10,24500),
+      n:F('Time Period',1,50,1,4,'yrs')
+  }},
+  { id:'negative', label:'Negative Growth CAGR', mode:'cagr', fields:{
+      pv:F('Initial Value',0,10000000,1000,500000),
+      fv:F('Final Value',0,10000000,1000,320000),
+      n:F('Time Period',1,50,1,5,'yrs')
+  }}
+];
+
+let allState = {};
+TABS.forEach(t => { allState[t.id] = {}; Object.keys(t.fields).forEach(k => allState[t.id][k] = t.fields[k].def); });
+let currentTab = TABS[0].id;
+
+/* ────────────── INPUT RENDERING ────────────── */
+function dispValue(cfg, v){
+  if(cfg.unit === '%') return v + '%';
+  if(cfg.unit === 'yrs') return v + ' yrs';
+  return '₹' + fmtSmart(v);
+}
+
+function fieldRowHTML(key, cfg){
+  const v = allState[currentTab][key];
+  return `
+  <div class="input-row">
+    <div class="input-label">
+      <span>${cfg.label}</span>
+      <span id="disp-${key}">${dispValue(cfg, v)}</span>
+    </div>
+    <div class="slider-wrap">
+      <input type="range" id="sl-${key}" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${v}" oninput="syncField('${key}',this.value)">
+      <input type="number" id="in-${key}" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${v}" oninput="syncField('${key}',this.value)">
+    </div>
+  </div>`;
+}
+
+function renderInputs(tab){
+  let html = `<div class="card"><div class="card-title">Configure — ${tab.label}</div>`;
+  if(tab.groups){
+    tab.groups.forEach(g => {
+      html += `<div class="group-label">${g.title}</div>`;
+      g.keys.forEach(k => html += fieldRowHTML(k, tab.fields[k]));
+    });
+  } else {
+    Object.keys(tab.fields).forEach(k => html += fieldRowHTML(k, tab.fields[k]));
+  }
+  html += `</div>`;
+  document.getElementById('inputsCard').innerHTML = html;
+}
+
+function syncField(key, val){
+  const tab = TABS.find(t => t.id === currentTab);
+  const cfg = tab.fields[key];
+  let v = parseFloat(val); if(isNaN(v)) v = 0;
+  v = Math.min(Math.max(v, cfg.min), cfg.max);
+  allState[currentTab][key] = v;
+  const sl = document.getElementById('sl-'+key), inp = document.getElementById('in-'+key);
+  if(sl) sl.value = v;
+  if(inp) inp.value = v;
+  const disp = document.getElementById('disp-'+key);
+  if(disp) disp.textContent = dispValue(cfg, v);
+  compute();
+}
+
+/* ────────────── TABS ────────────── */
+function switchTab(id){
+  currentTab = id;
+  const sel = document.getElementById('tabSelect');
+  if(sel) sel.value = id;
+  const tab = TABS.find(t => t.id === id);
+  document.getElementById('calcBadge').textContent = tab.label;
+  renderInputs(tab);
+  compute();
+}
+
+/* ────────────── SHARED UI BUILDERS ────────────── */
+const ARC_LEN = 283;
+
+function arcBlock(label){
+  return `<div class="wealth-meter">
+    <div class="arc-container">
+      <svg viewBox="-10 -10 220 130">
+        <path class="arc-bg" d="M 10 100 A 90 90 0 0 1 190 100"/>
+        <path id="arcA" class="arc-invest" d="M 10 100 A 90 90 0 0 1 190 100" stroke-dasharray="283" stroke-dashoffset="283"/>
+        <path id="arcB" class="arc-earn" d="M 10 100 A 90 90 0 0 1 190 100" stroke-dasharray="283" stroke-dashoffset="283"/>
+      </svg>
+      <div class="arc-center">
+        <div class="arc-total" id="arcCenterVal">—</div>
+        <div class="arc-label">${label}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function setArc(invPct, altColor){
+  const iLen = ARC_LEN*invPct, eLen = ARC_LEN*(1-invPct);
+  const a = document.getElementById('arcA'), b = document.getElementById('arcB');
+  if(!a || !b) return;
+  a.style.strokeDasharray = `${iLen} ${eLen+2}`;
+  a.style.strokeDashoffset = '0';
+  b.style.strokeDasharray = `${eLen} ${iLen+2}`;
+  b.style.strokeDashoffset = `-${iLen}`;
+  b.style.stroke = altColor ? 'var(--red)' : 'var(--gold)';
+}
+
+function pillsBlock(items){
+  return `<div class="result-pills">` + items.map(it =>
+    `<div class="pill pill-${it.cls}"><div class="pill-label">${it.label}</div><div class="pill-value"${it.color ? ` style="color:${it.color}"` : ''}>${it.value}</div></div>`
+  ).join('') + `</div>`;
+}
+
+function formulaCard(formulaHTML, legend){
+  return `<div class="card">
+    <div class="card-title">The Formula</div>
+    <div class="formula-box">${formulaHTML}</div>
+    <div class="formula-legend">
+      ${legend.map(([sym,desc]) => `<div><span>${sym}</span> ${desc}</div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function insightCard(text){
+  return `<div class="card"><div class="card-title">Insight</div><p class="insight-text">${text}</p></div>`;
+}
+
+/* ────────────── EXAMPLES ────────────── */
+const EXAMPLES = {
+  basic:        { num:'01 · Basic CAGR', desc:'Takes a starting and ending value and spreads the total growth evenly across each year.', ex:'₹1,00,000 → ₹2,50,000 in 5 years → <span class="result">20.11% CAGR</span>' },
+  investment:   { num:'02 · Investment CAGR', desc:"Same calculation as Basic CAGR, just labeled around an investment's start and end value.", ex:'₹50,000 → ₹1,50,000 in 7 years → <span class="result">16.99% CAGR</span>' },
+  futurevalue:  { num:'03 · Future Value', desc:'Given a lump sum and an expected growth rate, projects what it grows into.', ex:'₹1,00,000 at 15% for 10 years → <span class="result">₹4,04,556</span>' },
+  presentvalue: { num:'04 · Present Value', desc:"Works backward from a future target to figure out today's required amount.", ex:'Need ₹10,00,000 in 8 years at 12% → <span class="result">₹4,03,883 today</span>' },
+  duration:     { num:'05 · Duration', desc:'Given a start value, end value, and rate, solves for the number of years needed.', ex:'₹1,00,000 → ₹2,00,000 at 12% → <span class="result">6.1 years</span>' },
+  growth:       { num:'06 · Investment Growth', desc:'Same as Future Value, but shows every year in between as a table and chart, not just the end number.', ex:'₹1,00,000 at 14% for 15 years → <span class="result">₹7,13,793</span>' },
+  cagrvsabs:    { num:'07 · CAGR vs Absolute Return', desc:'Total % gained (absolute) is not the same as % gained per year (CAGR). This shows both side by side.', ex:'₹1,00,000 → ₹1,80,000 in 3 years → 80% absolute, but <span class="result">21.64% CAGR</span>' },
+  inflation:    { num:'08 · Inflation-Adjusted CAGR', desc:'Strips out inflation from the nominal CAGR to show what you actually gained in purchasing power.', ex:'11.61% nominal CAGR, 6% inflation → <span class="result">5.29% real CAGR</span>' },
+  comparison:   { num:'09 · CAGR Comparison', desc:'Puts two investments side by side and declares which one compounded faster.', ex:'A: ₹1L→₹2L/5yrs (14.87%) vs B: ₹1L→₹2.6L/5yrs (21.05%) → <span class="result">B wins</span>' },
+  stock:        { num:'10 · Stock CAGR', desc:"Uses purchase price and current price per share to find the yearly growth rate.", ex:'₹540/share → ₹2,150/share over 6 years → <span class="result">25.88% CAGR</span>' },
+  mutualfund:   { num:'11 · Mutual Fund CAGR', desc:"Same math, using a fund's NAV (Net Asset Value) at the start and today.", ex:'NAV ₹22.5 → ₹68.4 over 8 years → <span class="result">14.91% CAGR</span>' },
+  business:     { num:'12 · Business Revenue CAGR', desc:"Applies the CAGR formula to a company's starting and ending revenue.", ex:'₹50L → ₹1.8Cr revenue over 6 years → <span class="result">23.80% CAGR</span>' },
+  market:       { num:'13 · Market CAGR', desc:"Same calculation applied to a market index's start and end value.", ex:'Index 18,000 → 24,500 over 4 years → <span class="result">8.02% CAGR</span>' },
+  negative:     { num:'14 · Negative Growth CAGR', desc:'Same formula, but for a value that fell instead of grew — the result comes out negative.', ex:'₹5,00,000 → ₹3,20,000 over 5 years → <span class="result neg">−8.54% CAGR</span>' }
+};
+
+function exampleCard(tabId){
+  const e = EXAMPLES[tabId];
+  if(!e) return '';
+  return `<div class="card">
+    <div class="example-num">${e.num}</div>
+    <p class="example-desc">${e.desc}</p>
+    <div class="example-box">${e.ex}</div>
+  </div>`;
+}
+
+function setPanels(resultsHTML, rightHTML){
+  document.getElementById('resultsBody').innerHTML = resultsHTML;
+  document.getElementById('rightBody').innerHTML = rightHTML;
+}
+
+/* ────────────── GROWTH TABLE + CHARTS ────────────── */
+function buildGrowthRows(pv,r,n){
+  const y = new Date().getFullYear();
+  const maxFv = calcCompound(pv,r,n).fv;
+  let rows = '';
+  for(let yr=1; yr<=n; yr++){
+    const {fv,inv,gain} = calcCompound(pv,r,yr);
+    const pct = maxFv>0 ? Math.min(100,(fv/maxFv)*100) : 0;
+    rows += `<tr>
+      <td class="td-year">${y+yr} <span style="font-size:10px">[${yr}y]</span></td>
+      <td class="td-invest">₹${fmtShort(inv)}</td>
+      <td class="td-earn">₹${fmtShort(gain)}</td>
+      <td class="td-total">
+        <div class="grow-bar-wrap">
+          <span>₹${fmtShort(fv)}</span>
+          <div class="grow-bar"><div class="grow-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+      </td>
+    </tr>`;
+  }
+  return rows;
+}
+
+let dynChartInstance = null;
+function renderChart(canvasId, labels, seriesDefs){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if(dynChartInstance){ dynChartInstance.destroy(); dynChartInstance = null; }
+  const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = isDarkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+  const tickColor = isDarkMode ? '#94A3B8' : '#6B7280';
+
+  dynChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: seriesDefs.map(s => ({
+      label: s.label, data: s.data, borderColor: s.color, backgroundColor: s.fillA,
+      fill: true, tension: 0.35,
+      pointRadius: labels.length<=15?3:1, pointHoverRadius: 5, borderWidth: 2,
+      order: s.order, borderDash: s.dash ? [4,3] : []
+    })) },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display:true, position:'top', labels:{ color:tickColor, boxWidth:10, boxHeight:10, padding:14, font:{size:11,family:'Inter'} } },
+        tooltip: {
+          backgroundColor: isDarkMode ? '#12141F' : '#fff',
+          borderColor: isDarkMode ? '#252840' : '#dde0f5', borderWidth:1,
+          titleColor: isDarkMode ? '#F1F5F9' : '#1E1B4B',
+          bodyColor: isDarkMode ? '#94A3B8' : '#6B7280', padding:10,
+          callbacks: { label: c => ` ₹${fmtShort(c.raw)}` }
+        }
+      },
+      scales: {
+        x: { ticks:{ color:tickColor, maxRotation:45, font:{size:10}, maxTicksLimit: Math.min(labels.length,15) }, grid:{color:gridColor} },
+        y: { ticks:{ color:tickColor, font:{size:10}, callback: v => '₹'+fmtShort(v) }, grid:{color:gridColor} }
+      }
+    }
+  });
+}
+
+function drawGrowthChart(pv,r,n){
+  const y = new Date().getFullYear();
+  const labels=[], invD=[], gainD=[], totD=[];
+  for(let yr=1; yr<=n; yr++){
+    const {fv,inv,gain} = calcCompound(pv,r,yr);
+    labels.push(y+yr); invD.push(Math.round(inv)); gainD.push(Math.round(gain)); totD.push(Math.round(fv));
+  }
+  renderChart('dynChart', labels, [
+    {label:'Total Value', data:totD, color:'#10B981', fillA:'rgba(16,185,129,0.10)', order:1, dash:false},
+    {label:'Growth', data:gainD, color:'#F59E0B', fillA:'rgba(245,158,11,0.08)', order:2, dash:false},
+    {label:'Invested', data:invD, color:'#A78BFA', fillA:'rgba(124,58,237,0.08)', order:3, dash:true}
+  ]);
+}
+
+function drawComparisonChart(pvA,fvA,nA,pvB,fvB,nB){
+  const cagrA = (pvA>0 && nA>0) ? computeCAGR(pvA,fvA,nA)/100 : 0;
+  const cagrB = (pvB>0 && nB>0) ? computeCAGR(pvB,fvB,nB)/100 : 0;
+  const maxN = Math.max(nA,nB,1);
+  const y = new Date().getFullYear();
+  const labels=[], dataA=[], dataB=[];
+  for(let yr=1; yr<=maxN; yr++){
+    labels.push(y+yr);
+    dataA.push(yr<=nA ? Math.round(pvA*Math.pow(1+cagrA,yr)) : Math.round(fvA));
+    dataB.push(yr<=nB ? Math.round(pvB*Math.pow(1+cagrB,yr)) : Math.round(fvB));
+  }
+  renderChart('dynChart', labels, [
+    {label:'Investment A', data:dataA, color:'#7C3AED', fillA:'rgba(124,58,237,0.10)', order:1, dash:false},
+    {label:'Investment B', data:dataB, color:'#F59E0B', fillA:'rgba(245,158,11,0.10)', order:2, dash:false}
+  ]);
+}
+
+/* ────────────── COMPUTE / RENDER PER MODE ────────────── */
+function compute(){
+  const tab = TABS.find(t => t.id === currentTab);
+  const st = allState[currentTab];
+
+  if(tab.mode === 'cagr'){
+    const {pv,fv,n} = st;
+    const cagr = (pv>0 && n>0) ? computeCAGR(pv,fv,n) : 0;
+    const growing = fv >= pv;
+    const growth = fv - pv;
+    const invPct = growing ? (fv>0 ? pv/fv : 1) : (pv>0 ? fv/pv : 0);
+
+    const resultsHTML = arcBlock('CAGR') + pillsBlock([
+      {label:tab.fields.pv.label, value:'₹'+fmtSmart(pv), cls:'invest'},
+      {label:tab.fields.fv.label, value:'₹'+fmtSmart(fv), cls:'earn'},
+      {label:'Net Change', value:(growth>=0?'+₹':'−₹')+fmtSmart(Math.abs(growth)), cls:'total', color: growth>=0?'var(--green)':'var(--red)'}
+    ]);
+    const rightHTML = formulaCard('CAGR = (F ÷ I)<sup>1/n</sup> − 1', [
+      ['F', tab.fields.fv.label], ['I', tab.fields.pv.label], ['n', tab.fields.n.label + ' (years)']
+    ]) + insightCard(growing
+      ? `Grew at ${cagr.toFixed(2)}% per year on average, compounded annually over ${n} years.`
+      : `Declined at ${Math.abs(cagr).toFixed(2)}% per year on average over ${n} years.`)
+      + exampleCard(tab.id);
+
+    setPanels(resultsHTML, rightHTML);
+    setArc(Math.max(0,Math.min(1,invPct)), !growing);
+    const cv = document.getElementById('arcCenterVal');
+    cv.innerHTML = (cagr>=0?'':'−') + Math.abs(cagr).toFixed(2) + '%';
+    cv.style.color = cagr>=0 ? 'var(--green)' : 'var(--red)';
+  }
+
+  else if(tab.mode === 'fv'){
+    const {pv,r,n} = st;
+    const fv = computeFV(pv,r,n);
+    const gain = fv - pv;
+    const invPct = fv>0 ? pv/fv : 1;
+
+    const resultsHTML = arcBlock('Future Value') + pillsBlock([
+      {label:tab.fields.pv.label, value:'₹'+fmtSmart(pv), cls:'invest'},
+      {label:'Growth', value:'₹'+fmtSmart(gain), cls:'earn'},
+      {label:'Future Value', value:'₹'+fmtSmart(fv), cls:'total'}
+    ]);
+    const rightHTML = formulaCard('FV = PV × (1 + r/100)<sup>n</sup>', [
+      ['FV','Future Value'], ['PV', tab.fields.pv.label], ['r', tab.fields.r.label], ['n', tab.fields.n.label]
+    ]) + exampleCard(tab.id);
+
+    setPanels(resultsHTML, rightHTML);
+    setArc(Math.max(0,Math.min(1,invPct)), false);
+    const cv = document.getElementById('arcCenterVal');
+    cv.innerHTML = '₹'+fmtShort(fv);
+    cv.style.color = 'var(--text)';
+  }
+
+  else if(tab.mode === 'pv'){
+    const {fv,r,n} = st;
+    const pv = computePV(fv,r,n);
+    const discount = fv - pv;
+    const pvPct = fv>0 ? pv/fv : 1;
+
+    const resultsHTML = arcBlock('Present Value') + pillsBlock([
+      {label:tab.fields.fv.label, value:'₹'+fmtSmart(fv), cls:'earn'},
+      {label:'Present Value', value:'₹'+fmtSmart(pv), cls:'invest'},
+      {label:'Discount', value:'₹'+fmtSmart(discount), cls:'total'}
+    ]);
+    const rightHTML = formulaCard('PV = FV ÷ (1 + r/100)<sup>n</sup>', [
+      ['PV','Present Value'], ['FV', tab.fields.fv.label], ['r', tab.fields.r.label], ['n', tab.fields.n.label]
+    ]) + exampleCard(tab.id);
+
+    setPanels(resultsHTML, rightHTML);
+    setArc(Math.max(0,Math.min(1,pvPct)), false);
+    const cv = document.getElementById('arcCenterVal');
+    cv.innerHTML = '₹'+fmtShort(pv);
+    cv.style.color = 'var(--violet-l)';
+  }
+
+  else if(tab.mode === 'duration'){
+    const {pv,fv,r} = st;
+    const n = computeDuration(pv,fv,r);
+    const valid = !isNaN(n) && isFinite(n) && n>=0;
+
+    const resultsHTML = `
+      <div class="duration-hero">
+        <div class="duration-value">${valid ? n.toFixed(1) : '—'}</div>
+        <div class="duration-unit">years</div>
+      </div>` + pillsBlock([
+      {label:tab.fields.pv.label, value:'₹'+fmtSmart(pv), cls:'invest'},
+      {label:tab.fields.fv.label, value:'₹'+fmtSmart(fv), cls:'earn'},
+      {label:tab.fields.r.label, value:r+'%', cls:'total'}
+    ]);
+    const rightHTML = formulaCard('n = log(F ÷ I) ÷ log(1 + r/100)', [
+      ['n','Time required (years)'], ['F', tab.fields.fv.label], ['I', tab.fields.pv.label], ['r', tab.fields.r.label]
+    ]) + exampleCard(tab.id);
+    setPanels(resultsHTML, rightHTML);
+  }
+
+  else if(tab.mode === 'growth'){
+    const {pv,r,n} = st;
+    const fv = computeFV(pv,r,n);
+    const gain = fv - pv;
+    const invPct = fv>0 ? pv/fv : 1;
+
+    const resultsHTML = arcBlock('Total Value') + pillsBlock([
+      {label:'Invested', value:'₹'+fmtSmart(pv), cls:'invest'},
+      {label:'Growth', value:'₹'+fmtSmart(gain), cls:'earn'},
+      {label:'Total', value:'₹'+fmtSmart(fv), cls:'total'}
+    ]);
+    const rightHTML = `<div class="card">
+        <div class="section-header"><div class="section-title">Growth Milestones</div><div class="section-sub">@ ${r}% p.a.</div></div>
+        <div class="table-wrap"><table><thead><tr><th>Timeline</th><th>Invested</th><th>Growth</th><th>Value</th></tr></thead><tbody id="growthBody"></tbody></table></div>
+        <div class="line-chart-wrap"><canvas id="dynChart"></canvas></div>
+      </div>` + formulaCard('A = P × (1 + r/100)<sup>n</sup>', [
+        ['A','Future value'], ['P', tab.fields.pv.label], ['r', tab.fields.r.label], ['n', tab.fields.n.label]
+      ]) + exampleCard(tab.id);
+
+    setPanels(resultsHTML, rightHTML);
+    setArc(Math.max(0,Math.min(1,invPct)), false);
+    const cv = document.getElementById('arcCenterVal');
+    cv.innerHTML = '₹'+fmtShort(fv);
+    cv.style.color = 'var(--text)';
+    document.getElementById('growthBody').innerHTML = buildGrowthRows(pv,r,n);
+    drawGrowthChart(pv,r,n);
+  }
+
+  else if(tab.mode === 'cagrvsabs'){
+    const {pv,fv,n} = st;
+    const cagr = (pv>0 && n>0) ? computeCAGR(pv,fv,n) : 0;
+    const absReturn = pv>0 ? ((fv-pv)/pv*100) : 0;
+
+    const resultsHTML = `
+      <div class="compare-stats">
+        <div class="stat-block"><div class="stat-label">CAGR (Annualized)</div><div class="stat-value" style="color:${cagr>=0?'var(--green)':'var(--red)'}">${cagr.toFixed(2)}%</div></div>
+        <div class="stat-block"><div class="stat-label">Absolute Return</div><div class="stat-value" style="color:${absReturn>=0?'var(--gold)':'var(--red)'}">${absReturn.toFixed(2)}%</div></div>
+      </div>` + pillsBlock([
+      {label:tab.fields.pv.label, value:'₹'+fmtSmart(pv), cls:'invest'},
+      {label:tab.fields.fv.label, value:'₹'+fmtSmart(fv), cls:'earn'},
+      {label:tab.fields.n.label, value:n+' yrs', cls:'total'}
+    ]);
+    const rightHTML = formulaCard('CAGR ≠ Absolute Return', [
+      ['CAGR','Annualized compounding rate'], ['Absolute','Total change, ignoring time']
+    ]) + insightCard(`An absolute return of ${absReturn.toFixed(1)}% over ${n} years works out to a CAGR of ${cagr.toFixed(2)}% per year once compounding is accounted for.`)
+      + exampleCard(tab.id);
+
+    setPanels(resultsHTML, rightHTML);
+  }
+
+  else if(tab.mode === 'inflation'){
+    const {pv,fv,n,infl} = st;
+    const nominal = (pv>0 && n>0) ? computeCAGR(pv,fv,n) : 0;
+    const real = ((1+nominal/100)/(1+infl/100) - 1) * 100;
+
+    const resultsHTML = `
+      <div class="compare-stats">
+        <div class="stat-block"><div class="stat-label">Nominal CAGR</div><div class="stat-value" style="color:var(--violet-l)">${nominal.toFixed(2)}%</div></div>
+        <div class="stat-block"><div class="stat-label">Inflation</div><div class="stat-value" style="color:var(--gold)">${infl}%</div></div>
+        <div class="stat-block"><div class="stat-label">Real CAGR</div><div class="stat-value" style="color:${real>=0?'var(--green)':'var(--red)'}">${real.toFixed(2)}%</div></div>
+      </div>` + pillsBlock([
+      {label:tab.fields.pv.label, value:'₹'+fmtSmart(pv), cls:'invest'},
+      {label:tab.fields.fv.label, value:'₹'+fmtSmart(fv), cls:'earn'},
+      {label:tab.fields.n.label, value:n+' yrs', cls:'total'}
+    ]);
+    const rightHTML = formulaCard('Real = (1+Nominal)/(1+Inflation) − 1', [
+      ['Nominal','Uninflated CAGR'], ['Inflation', tab.fields.infl.label], ['Real','Purchasing-power-adjusted CAGR']
+    ]) + exampleCard(tab.id);
+
+    setPanels(resultsHTML, rightHTML);
+  }
+
+  else if(tab.mode === 'comparison'){
+    const {pvA,fvA,nA,pvB,fvB,nB} = st;
+    const cagrA = (pvA>0 && nA>0) ? computeCAGR(pvA,fvA,nA) : 0;
+    const cagrB = (pvB>0 && nB>0) ? computeCAGR(pvB,fvB,nB) : 0;
+    const winner = cagrA===cagrB ? 'tie' : (cagrA>cagrB ? 'A' : 'B');
+
+    const resultsHTML = `
+      <div class="compare-stats">
+        <div class="stat-block ${winner==='A'?'winner':''}"><div class="stat-label">Investment A</div><div class="stat-value" style="color:${cagrA>=0?'var(--green)':'var(--red)'}">${cagrA.toFixed(2)}%</div></div>
+        <div class="stat-block ${winner==='B'?'winner':''}"><div class="stat-label">Investment B</div><div class="stat-value" style="color:${cagrB>=0?'var(--green)':'var(--red)'}">${cagrB.toFixed(2)}%</div></div>
+      </div>
+      <p class="compare-note">${winner==='tie' ? 'Both investments grew at the same rate.' : `Investment ${winner} compounded faster.`}</p>` + pillsBlock([
+      {label:'A: Initial → Final', value:'₹'+fmtShort(pvA)+' → ₹'+fmtShort(fvA), cls:'invest'},
+      {label:'B: Initial → Final', value:'₹'+fmtShort(pvB)+' → ₹'+fmtShort(fvB), cls:'earn'},
+      {label:'Years (A / B)', value:nA+' / '+nB, cls:'total'}
+    ]);
+    const rightHTML = `<div class="card">
+        <div class="section-header"><div class="section-title">Growth Comparison</div><div class="section-sub">A vs B over time</div></div>
+        <div class="line-chart-wrap"><canvas id="dynChart"></canvas></div>
+      </div>` + formulaCard('CAGR = (F ÷ I)<sup>1/n</sup> − 1', [['A','Investment A'],['B','Investment B']]) + exampleCard(tab.id);
+
+    setPanels(resultsHTML, rightHTML);
+    drawComparisonChart(pvA,fvA,nA,pvB,fvB,nB);
+  }
+}
+
+/* ────────────── INIT ────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  initVanta(DARK_VANTA);
+  document.getElementById('tabSelect').innerHTML = TABS.map(t =>
+    `<option value="${t.id}">${t.label}</option>`
+  ).join('');
+  switchTab(TABS[0].id);
+});
+</script>
+</body>
+</html>

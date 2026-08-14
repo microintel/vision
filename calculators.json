@@ -1,0 +1,42 @@
+[
+  {
+    "id": "sip",
+    "name": "SIP Calculator",
+    "tagline": "Grow wealth with monthly investments",
+    "description": "Estimate the future value of your monthly SIP contributions based on investment amount, expected return, and duration.",
+    "file": "sip.html",
+    "accent": "violet",
+    "formula": "FV = P × [(1+r)ⁿ − 1] × (1+r) / r",
+    "icon": "trend"
+  },
+  {
+    "id": "lumpsum",
+    "name": "Lumpsum Calculator",
+    "tagline": "Grow a one-time investment",
+    "description": "Calculate the future value of a single lumpsum investment compounded annually over your chosen tenure and rate of return.",
+    "file": "lumpsum.html",
+    "accent": "gold",
+    "formula": "A = P (1 + r/100)ⁿ",
+    "icon": "coins"
+  },
+  {
+    "id": "goal",
+    "name": "Goal Planning Calculator",
+    "tagline": "Reverse-engineer your target wealth",
+    "description": "Work backward from a targeted wealth goal to find out how much you need to invest today, with optional inflation adjustment.",
+    "file": "goal-lumpsum.html",
+    "accent": "green",
+    "formula": "P = A / (1 + r/100)ⁿ",
+    "icon": "target"
+  },
+  {
+    "id": "cagr",
+    "name": "CAGR Calculator",
+    "tagline": "Measure your annualized growth rate",
+    "description": "Find the compound annual growth rate between a starting and ending value — plus 13 more growth tools covering future value, present value, duration, inflation-adjusted returns, stock and fund CAGR, and side-by-side comparisons.",
+    "file": "cagr.html",
+    "accent": "violet",
+    "formula": "CAGR = (F ÷ I)^(1/n) − 1",
+    "icon": "percent"
+  }
+]
